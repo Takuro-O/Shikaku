@@ -77,6 +77,15 @@ header {
   background: linear-gradient(135deg, var(--orange), var(--yellow));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
+.sync-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px;
+  transition: all 0.3s ease;
+}
+.sync-badge.syncing  { background: #fef3c7; color: #b45309; }
+.sync-badge.synced   { background: var(--green-light); color: #16a34a; }
+.sync-badge.error    { background: var(--red-light); color: var(--red); }
+.sync-badge.offline  { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
 .header-date {
   font-size: 13px; color: var(--sub);
   background: var(--orange-light);
@@ -840,12 +849,55 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 .modal-btn.primary { background: var(--orange); color: #fff; }
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZmOGM0MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiYmYyNCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjciIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iNyIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjk1Ii8+PHJlY3QgeD0iMTEiIHk9IjkiIHdpZHRoPSIxMyIgaGVpZ2h0PSIxNCIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjg1Ii8+PC9zdmc+">
+<!-- Firebase SDK -->
+<script type="module" id="firebase-init">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB5XG8wYcRo5u48f3U1cyeZwcfYuiIF9Sc",
+  authDomain: "cert-dashboard-36f8b.firebaseapp.com",
+  projectId: "cert-dashboard-36f8b",
+  storageBucket: "cert-dashboard-36f8b.firebasestorage.app",
+  messagingSenderId: "537612897899",
+  appId: "1:537612897899:web:8f12573d3ca5f15fd7eb2e"
+};
+
+const _app = initializeApp(firebaseConfig);
+const _db  = getFirestore(_app);
+const _ref = doc(_db, 'users', 'default');
+
+// Firestoreから読み込み → グローバルに公開
+window._fsLoad = async () => {
+  try {
+    const snap = await getDoc(_ref);
+    return snap.exists() ? snap.data().state : null;
+  } catch(e) {
+    console.warn('Firestore load error:', e);
+    return null;
+  }
+};
+
+// Firestoreに保存
+window._fsSave = async (stateJson) => {
+  try {
+    await setDoc(_ref, { state: stateJson, updatedAt: Date.now() });
+    return true;
+  } catch(e) {
+    console.warn('Firestore save error:', e);
+    return false;
+  }
+};
+</script>
 </head>
 <body>
 <div id="app">
   <header>
     <div class="header-logo">🎯 合格ナビ</div>
-    <div class="header-date" id="headerDate">--/--</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="sync-badge" id="syncBadge"></div>
+      <div class="header-date" id="headerDate">--/--</div>
+    </div>
   </header>
 
   <main>
@@ -1494,39 +1546,91 @@ function defaultState() {
   };
 }
 
+// マイグレーション処理（共通）
+function migrateState(p) {
+  if (!p.exams) p.exams = makeDefaultExams();
+  if (!p.ui) p.ui = { heroExamId: null, currentPage: 'home', historyPage: 1 };
+  if (!p.ui.historyPage) p.ui.historyPage = 1;
+  if (!p.streak) p.streak = { count: 0, lastDate: '' };
+  p.exams.forEach((e, i) => {
+    if (!e.color) e.color = EXAM_COLORS[i % EXAM_COLORS.length];
+    if (!e.links) e.links = [];
+    if (!('certDbId' in e)) e.certDbId = null;
+  });
+  if (!p.owned) p.owned = [];
+  return p;
+}
+
 function loadState() {
   try {
     const s = localStorage.getItem(STORAGE_KEY);
-    if (s) {
-      const p = JSON.parse(s);
-      // マイグレーション
-      if (!p.exams) p.exams = makeDefaultExams();
-      if (!p.ui) p.ui = { heroExamId: null, currentPage: 'home', historyPage: 1 };
-      if (!p.ui.historyPage) p.ui.historyPage = 1;
-      if (!p.streak) p.streak = { count: 0, lastDate: '' };
-      // 各試験にcolorがなければ補完、linksがなければ空配列
-      p.exams.forEach((e, i) => {
-        if (!e.color) e.color = EXAM_COLORS[i % EXAM_COLORS.length];
-        if (!e.links) e.links = [];
-        if (!('certDbId' in e)) e.certDbId = null; // 資格DBと紐付け（任意）
-      });
-      // 取得済み資格リスト（保有資格機能用）
-      if (!p.owned) p.owned = [];
-      return p;
-    }
+    if (s) return migrateState(JSON.parse(s));
   } catch(e) {}
   return defaultState();
 }
 
+// Firestore保存（debounce付き）
+let _saveTimer = null;
 function saveState() {
+  // タイムスタンプ更新（新旧判定用）
+  state._ts = Date.now();
+  // localStorageには即時保存
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch(e) {
     if (e.name === 'QuotaExceededError') showToast('⚠️ 保存容量が上限に達しました');
   }
+  // Firestoreには1.5秒debounce
+  clearTimeout(_saveTimer);
+  setSyncBadge('syncing');
+  _saveTimer = setTimeout(async () => {
+    if (typeof window._fsSave !== 'function') { setSyncBadge('offline'); return; }
+    const ok = await window._fsSave(JSON.stringify(state));
+    setSyncBadge(ok ? 'synced' : 'error');
+    if (!ok) showToast('⚠️ クラウド同期に失敗しました（ローカルには保存済み）');
+    // 3秒後にバッジを消す
+    setTimeout(() => setSyncBadge(''), 3000);
+  }, 1500);
+}
+
+function setSyncBadge(status) {
+  const el = document.getElementById('syncBadge');
+  if (!el) return;
+  el.className = 'sync-badge' + (status ? ' ' + status : '');
+  el.textContent = status === 'syncing' ? '同期中…' :
+                   status === 'synced'  ? '✓ 同期済み' :
+                   status === 'error'   ? '同期失敗' :
+                   status === 'offline' ? 'オフライン' : '';
 }
 
 let state = loadState();
+
+// ─── Firestore 初期ロード（起動時） ────────────────────────
+async function initFirestore() {
+  setSyncBadge('syncing');
+  if (typeof window._fsLoad !== 'function') { setSyncBadge('offline'); return; }
+  try {
+    const remote = await window._fsLoad();
+    if (remote) {
+      const p = migrateState(JSON.parse(remote));
+      // ローカルより新しければ上書き
+      const localRaw = localStorage.getItem(STORAGE_KEY);
+      const localTs  = localRaw ? (JSON.parse(localRaw)._ts || 0) : 0;
+      const remoteTs = p._ts || 0;
+      if (remoteTs >= localTs) {
+        state = p;
+        localStorage.setItem(STORAGE_KEY, remote);
+        render();
+        showToast('☁️ クラウドからデータを読み込みました');
+      }
+    }
+    setSyncBadge('synced');
+    setTimeout(() => setSyncBadge(''), 3000);
+  } catch(e) {
+    setSyncBadge('error');
+    setTimeout(() => setSyncBadge(''), 3000);
+  }
+}
 
 // ─── Exam helpers ───────────────────────────────────────────
 function getExam(id) { return state.exams.find(e => e.id === id); }
@@ -2924,6 +3028,10 @@ document.getElementById('logDate').value = new Date().toISOString().split('T')[0
 
 updateStreak();
 showPage(state.ui.currentPage || 'home');
+// Firestore初期ロード（module scriptの読み込み完了後に実行）
+window.addEventListener('load', () => {
+  setTimeout(initFirestore, 300);
+});
 </script>
 </body>
 </html>
