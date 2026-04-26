@@ -1,0 +1,2929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff7ed">
+<title>合格ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fffdf9;
+  --surface: #ffffff;
+  --border: #f0ebe2;
+  --text: #1c1410;
+  --sub: #9e8e7e;
+  --orange: #f97316;
+  --orange-light: #fff3e8;
+  --orange-mid: #fed7aa;
+  --yellow: #fbbf24;
+  --green: #22c55e;
+  --green-light: #f0fdf4;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --purple: #8b5cf6;
+  --blue: #3b82f6;
+  --blue-light: #eff6ff;
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 24px;
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.06);
+  --transition: 0.18s ease;
+  --z-header: 100;
+  --z-nav: 100;
+  --z-modal: 500;
+  --z-toast: 999;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+#app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
+input, textarea, select { font-family: inherit; font-size: 16px; }
+
+.tappable { transition: transform var(--transition), opacity var(--transition); -webkit-tap-highlight-color: transparent; }
+.tappable:active { transform: scale(0.97); opacity: 0.85; }
+
+/* ─── Header ─── */
+header {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: rgba(255,253,249,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px; font-weight: 900; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header-date {
+  font-size: 13px; color: var(--sub);
+  background: var(--orange-light);
+  border: 1px solid var(--orange-mid);
+  padding: 4px 10px; border-radius: 20px;
+}
+
+/* ─── Main ─── */
+main {
+  flex: 1; overflow-y: auto;
+  padding: 0 0 calc(80px + env(safe-area-inset-bottom));
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── Hero Section ─── */
+.hero-wrap { padding: 20px 16px 0; }
+
+.cert-tab-row {
+  display: flex; gap: 8px; margin-bottom: 16px;
+  overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.cert-tab-row::-webkit-scrollbar { display: none; }
+.cert-tab {
+  flex-shrink: 0; padding: 10px 14px; min-height: 44px;
+  border-radius: var(--radius-s);
+  border: 1.5px solid var(--border);
+  background: var(--surface); font-size: 13px; font-weight: 700;
+  color: var(--sub); white-space: nowrap;
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.cert-tab.active {
+  border-color: var(--orange);
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #ff8c42 0%, #f97316 40%, #fb923c 70%, #fbbf24 100%);
+  border-radius: var(--radius-l);
+  padding: 24px 20px 20px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(249,115,22,0.35);
+  margin-bottom: 16px;
+}
+.hero-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: rgba(255,255,255,0.12); border-radius: 50%;
+}
+.hero-card::after {
+  content: ''; position: absolute; bottom: -50px; left: -20px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.08); border-radius: 50%;
+}
+.hero-cert-name {
+  font-size: 13px; font-weight: 700;
+  opacity: 0.85; margin-bottom: 4px; position: relative; z-index: 1;
+}
+.hero-days-left {
+  font-family: 'Nunito', sans-serif;
+  font-size: 64px; font-weight: 900; line-height: 1;
+  position: relative; z-index: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.hero-days-label {
+  font-size: 14px; font-weight: 700; opacity: 0.85;
+  position: relative; z-index: 1; margin-bottom: 20px;
+}
+.hero-stats { display: flex; gap: 12px; position: relative; z-index: 1; }
+.hero-stat {
+  flex: 1; background: rgba(255,255,255,0.22);
+  border-radius: var(--radius-s); padding: 10px 12px;
+  backdrop-filter: blur(4px);
+}
+.hero-stat-val {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px; font-weight: 900; line-height: 1;
+}
+.hero-stat-key { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+/* ─── Daily Banner ─── */
+.daily-banner {
+  border-radius: var(--radius-m);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px; border: 2px solid;
+}
+.daily-banner.safe   { background: var(--green-light); border-color: #bbf7d0; }
+.daily-banner.warn   { background: #fffbeb;            border-color: #fde68a; }
+.daily-banner.danger { background: var(--red-light);   border-color: #fecaca; }
+.daily-banner-icon { font-size: 28px; flex-shrink: 0; }
+.daily-banner-text { flex: 1; }
+.daily-banner-val {
+  font-family: 'Nunito', sans-serif;
+  font-size: 28px; font-weight: 900; line-height: 1;
+}
+.daily-banner.safe   .daily-banner-val { color: #16a34a; }
+.daily-banner.warn   .daily-banner-val { color: #d97706; }
+.daily-banner.danger .daily-banner-val { color: var(--red); }
+.daily-banner-desc { font-size: 12px; color: var(--sub); margin-top: 2px; }
+
+/* ─── Sections ─── */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; margin-bottom: 10px; margin-top: 4px;
+}
+.section-title {
+  font-size: 13px; font-weight: 700; color: var(--sub);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+
+/* ─── Progress Cards ─── */
+.progress-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 16px;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.prog-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.prog-name { font-size: 15px; font-weight: 700; }
+.prog-pct {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px; font-weight: 900;
+}
+.prog-bar-wrap {
+  background: var(--border); border-radius: 6px; height: 10px; overflow: hidden;
+  margin-bottom: 8px;
+}
+.prog-bar-fill {
+  height: 100%; border-radius: 6px;
+  transition: width 1s cubic-bezier(.4,0,.2,1);
+}
+.prog-meta {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--sub);
+}
+
+/* ─── Log Form ─── */
+.log-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 16px;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.input-group { margin-bottom: 12px; }
+.input-label-text {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--sub); margin-bottom: 6px;
+}
+.input-field {
+  width: 100%; padding: 11px 14px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius-s); font-size: 16px; color: var(--text);
+  outline: none; transition: border-color var(--transition);
+}
+.input-field:focus { border-color: var(--orange); }
+.input-row-2 { display: flex; gap: 10px; }
+.input-row-2 .input-group { flex: 1; }
+.unit-label { font-size: 13px; color: var(--sub); align-self: flex-end; padding-bottom: 12px; }
+
+.btn-primary {
+  width: 100%; height: 50px;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  color: #fff; border: none; border-radius: var(--radius-s);
+  font-size: 16px; font-weight: 700;
+  box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+  transition: all var(--transition);
+}
+.btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(249,115,22,0.2); }
+
+/* ─── Chart ─── */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 16px;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.chart-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+.bar-chart {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 112px; margin-bottom: 4px;
+}
+.bar-group {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; gap: 3px; height: 100%;
+}
+.bars {
+  display: flex; gap: 2px; align-items: flex-end;
+  width: 100%; justify-content: center; height: 80px;
+}
+.bar { border-radius: 4px 4px 0 0; transition: height 0.8s ease; min-height: 2px; }
+.bar-day { font-size: 10px; color: var(--sub); }
+.bar-day.today { color: var(--orange); font-weight: 700; }
+.bar-val { font-size: 9px; color: var(--sub); margin-bottom: 2px; min-height: 12px; line-height: 1; }
+.chart-legend {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  font-size: 11px; color: var(--sub); margin-top: 8px;
+}
+.legend-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-right: 4px; flex-shrink: 0;
+}
+
+/* ─── Goals ─── */
+.goal-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); overflow: hidden;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.goal-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 12px;
+}
+.goal-row:last-child { border-bottom: none; }
+.goal-name { font-size: 14px; font-weight: 700; }
+.goal-sub  { font-size: 12px; color: var(--sub); margin-top: 2px; }
+.goal-badge {
+  font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.goal-badge.done { background: var(--green-light); color: #16a34a; }
+.goal-badge.pend { background: var(--orange-light); color: var(--orange); }
+
+/* ─── History ─── */
+.history-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.history-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 12px 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: var(--shadow-card);
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.hist-main { flex: 1; padding-right: 32px; }
+.hist-cert { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.hist-note { font-size: 12px; color: var(--sub); }
+.hist-hours {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px; font-weight: 900; color: var(--orange); flex-shrink: 0;
+}
+.hist-hours-unit { font-size: 11px; color: var(--sub); font-family: inherit; }
+.hist-delete {
+  position: absolute; top: 0; right: 0;
+  background: none; border: none; font-size: 16px;
+  color: var(--sub); padding: 0;
+  border-radius: 6px; opacity: 0.45; line-height: 1;
+  transition: opacity var(--transition), background var(--transition);
+  min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+.hist-delete:active { opacity: 1; background: var(--red-light); color: var(--red); }
+.hist-total {
+  font-size: 12px; color: var(--sub); font-weight: 600;
+}
+.hist-total span { color: var(--orange); font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 14px; }
+.btn-show-more {
+  display: block; width: calc(100% - 32px); margin: 10px 16px 0;
+  padding: 10px; border: 1.5px solid var(--border);
+  background: var(--surface); border-radius: var(--radius-s);
+  font-size: 13px; font-weight: 700; color: var(--sub);
+  transition: all var(--transition);
+}
+.btn-show-more:active { border-color: var(--orange); color: var(--orange); }
+
+/* ─── Settings ─── */
+.settings-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); overflow: hidden;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 12px;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 15px; font-weight: 500; }
+.settings-sub { font-size: 12px; color: var(--sub); margin-top: 1px; }
+.settings-input {
+  padding: 7px 12px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-s); font-size: 15px;
+  font-family: 'Nunito', sans-serif; font-weight: 700;
+  background: var(--bg); color: var(--text); text-align: right;
+  width: 100px; outline: none; transition: border-color var(--transition);
+}
+.settings-input:focus { border-color: var(--orange); }
+.settings-input[type="date"] { width: 138px; font-family: inherit; font-size: 14px; }
+
+/* ─── Exam List in Settings ─── */
+.exam-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); margin: 0 16px 10px;
+  box-shadow: var(--shadow-card); overflow: hidden;
+}
+.exam-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.exam-item-name {
+  font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+}
+.exam-item-emoji {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.btn-exam-delete {
+  padding: 4px 10px; border: 1.5px solid #fecaca;
+  background: var(--red-light); color: var(--red);
+  border-radius: 20px; font-size: 12px; font-weight: 700;
+  transition: all var(--transition);
+  min-height: 44px;
+}
+.btn-exam-delete:active { background: var(--red); color: #fff; }
+.btn-exam-delete:disabled { opacity: 0.35; pointer-events: none; }
+
+/* ─── DBピッカー連携表示 ─── */
+.db-pick-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.db-pick-badge {
+  flex: 1; min-width: 0;
+  padding: 8px 12px; border-radius: var(--radius-s);
+  background: var(--orange-light); border: 1.5px solid var(--orange-mid);
+  font-size: 13px; font-weight: 700; color: var(--orange);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.db-pick-badge.empty {
+  background: var(--bg); border-color: var(--border);
+  color: var(--sub); font-weight: 500;
+}
+.btn-db-pick {
+  flex-shrink: 0; height: 44px; padding: 0 14px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-s); font-size: 13px; font-weight: 700;
+  color: var(--sub); white-space: nowrap;
+  transition: all var(--transition);
+}
+.btn-db-pick:active { border-color: var(--orange); color: var(--orange); }
+
+/* ─── Add Exam Form ─── */
+.add-exam-card {
+  background: var(--surface); border: 2px dashed var(--orange-mid);
+  border-radius: var(--radius-m); padding: 20px 16px;
+  margin: 0 16px 12px;
+}
+.add-exam-title {
+  font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--orange);
+}
+.emoji-picker {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.emoji-opt {
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 2px solid var(--border); background: var(--bg);
+  font-size: 20px; display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition); cursor: pointer;
+}
+.emoji-opt.selected { border-color: var(--orange); background: var(--orange-light); }
+.btn-add-exam {
+  width: 100%; height: 46px;
+  background: var(--orange-light); color: var(--orange);
+  border: 2px solid var(--orange-mid); border-radius: var(--radius-s);
+  font-size: 15px; font-weight: 700;
+  transition: all var(--transition);
+}
+.btn-add-exam:active { background: var(--orange); color: #fff; }
+
+/* ─── Hero Links ─── */
+.hero-links {
+  position: relative; z-index: 1;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.25);
+}
+.hero-link-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  text-decoration: none; white-space: nowrap;
+  transition: background var(--transition), transform var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-link-btn:active { background: rgba(255,255,255,0.38); transform: scale(0.96); }
+.hero-link-icon { font-size: 13px; }
+
+/* ─── Settings: Link manager ─── */
+.link-list { padding: 0 16px 4px; display: flex; flex-direction: column; gap: 6px; }
+.link-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-s); padding: 8px 12px;
+}
+.link-item-info { flex: 1; min-width: 0; }
+.link-item-label { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link-item-url   { font-size: 11px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-link-delete {
+  flex-shrink: 0; background: none; border: none;
+  font-size: 16px; color: var(--sub); padding: 0;
+  opacity: 0.5; border-radius: 4px;
+  transition: opacity var(--transition), color var(--transition);
+  min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-link-delete:active { opacity: 1; color: var(--red); }
+.add-link-row {
+  display: flex; gap: 8px; padding: 10px 16px 14px; align-items: flex-end;
+}
+.add-link-row .input-group { margin-bottom: 0; }
+.add-link-row .input-field { font-size: 14px; padding: 8px 12px; }
+.btn-link-add {
+  flex-shrink: 0; height: 42px; padding: 0 14px;
+  background: var(--orange-light); color: var(--orange);
+  border: 1.5px solid var(--orange-mid); border-radius: var(--radius-s);
+  font-size: 13px; font-weight: 700; white-space: nowrap;
+  transition: all var(--transition);
+}
+.btn-link-add:active { background: var(--orange); color: #fff; }
+.link-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 6px; border-top: 1px solid var(--border);
+}
+.link-section-title { font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: 0.5px; }
+
+/* ─── Motivation ribbon ─── */
+.motivation-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--orange-light), #fef9c3);
+  border: 1px solid var(--orange-mid);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 13px; font-weight: 700; color: #92400e;
+  margin: 0 16px 14px;
+}
+
+/* ─── Onboarding ─── */
+.onboard-banner {
+  margin: 0 16px 14px;
+  background: var(--blue-light); border: 1.5px solid #bfdbfe;
+  border-radius: var(--radius-m); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.onboard-banner-text { flex: 1; font-size: 13px; font-weight: 600; color: #1d4ed8; line-height: 1.5; }
+.onboard-banner-btn {
+  flex-shrink: 0; padding: 6px 14px; background: #3b82f6;
+  color: #fff; border: none; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+}
+
+/* ─── Empty State ─── */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--sub); }
+.empty-icon  { font-size: 52px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.empty-desc  { font-size: 14px; }
+
+/* ─── Bottom Nav ─── */
+nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: rgba(255,253,249,0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: var(--z-nav);
+}
+.nav-btn {
+  flex: 1; height: 56px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; background: none; border: none;
+  font-size: 10px; color: var(--sub); font-weight: 600;
+  transition: color var(--transition);
+}
+.nav-btn .nav-icon { font-size: 22px; }
+.nav-btn.active { color: var(--orange); }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed;
+  bottom: max(calc(64px + 12px), calc(64px + 12px + env(safe-area-inset-bottom)));
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--text); color: #fff;
+  font-size: 13px; font-weight: 700;
+  padding: 10px 20px; border-radius: 30px;
+  z-index: var(--z-toast); white-space: nowrap;
+  transition: transform 0.3s ease;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── 資格バッジ（手当額表示） ─── */
+.cert-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 9px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+  vertical-align: middle;
+}
+.cert-badge.special-1 { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.cert-badge.special-2 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.cert-badge.special-3 { background: #fff3e8; color: #c2410c; border: 1px solid #fed7aa; }
+.cert-badge.special-4 { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.cert-badge.self-A    { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+.cert-badge.self-B    { background: #ddd6fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+.cert-badge.self-C    { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.cert-badge.self-D    { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+.cert-badge.snow      { background: #cffafe; color: #0e7490; border: 1px solid #a5f3fc; }
+.cert-badge.ms        { background: linear-gradient(135deg, #dbeafe, #ede9fe); color: #5b21b6; border: 1px solid #c7d2fe; }
+.cert-badge.no-cert   { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
+.cert-badge-flame { font-size: 10px; }
+
+/* Hero内の手当額バッジ（上書き：白背景） */
+.hero-card .cert-badge {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(255,255,255,0.5);
+}
+
+/* ─── 期待リターンセクション ─── */
+.return-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 14px 16px;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.return-card.has-data { border-color: var(--orange-mid); background: linear-gradient(180deg, var(--orange-light) 0%, var(--surface) 60%); }
+.return-title {
+  font-size: 12px; font-weight: 700; color: var(--sub);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 4px;
+}
+.return-rows { display: flex; flex-direction: column; gap: 6px; }
+.return-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px;
+}
+.return-row .label { color: var(--sub); font-weight: 600; }
+.return-row .val { font-family: 'Nunito', sans-serif; font-weight: 900; color: var(--text); }
+.return-row.big .val { font-size: 22px; color: var(--orange); }
+.return-row.big .label { font-size: 13px; }
+.return-note { font-size: 11px; color: var(--sub); margin-top: 8px; line-height: 1.4; }
+.return-note.alert { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px; }
+.return-no-data {
+  text-align: center; padding: 12px 0; font-size: 13px; color: var(--sub);
+}
+.return-no-data button {
+  margin-top: 8px; padding: 6px 14px;
+  background: var(--orange-light); color: var(--orange);
+  border: 1px solid var(--orange-mid); border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+}
+
+/* ─── アラートバナー（廃止予定など） ─── */
+.alert-banner {
+  margin: 0 16px 12px;
+  border-radius: var(--radius-m); padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 600; line-height: 1.4;
+}
+.alert-banner.high { background: var(--red-light); border: 1px solid #fecaca; color: #b91c1c; }
+.alert-banner.mid  { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.alert-banner.low  { background: var(--blue-light); border: 1px solid #bfdbfe; color: #1d4ed8; }
+.alert-banner-icon { font-size: 18px; flex-shrink: 0; }
+
+/* ─── カタログページ ─── */
+.catalog-search {
+  margin: 0 16px 12px;
+  position: relative;
+}
+.catalog-search input {
+  width: 100%; padding: 12px 14px 12px 40px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-s); font-size: 15px;
+  outline: none; transition: border-color var(--transition);
+}
+.catalog-search input:focus { border-color: var(--orange); }
+.catalog-search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; opacity: 0.5; pointer-events: none;
+}
+
+.catalog-filters {
+  display: flex; gap: 8px; padding: 0 16px 12px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.catalog-filters::-webkit-scrollbar { display: none; }
+.filter-chip {
+  flex-shrink: 0; padding: 8px 14px; min-height: 44px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); font-size: 12px; font-weight: 700;
+  color: var(--sub); white-space: nowrap;
+  transition: all var(--transition); cursor: pointer;
+}
+.filter-chip.active {
+  border-color: var(--orange);
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+.catalog-result-count {
+  padding: 0 16px 8px;
+  font-size: 12px; color: var(--sub);
+}
+.catalog-result-count strong { color: var(--orange); font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 14px; }
+
+.catalog-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.catalog-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 12px 14px;
+  box-shadow: var(--shadow-card);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.catalog-item-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 8px;
+}
+.catalog-item-name {
+  font-size: 14px; font-weight: 700; line-height: 1.4; flex: 1;
+}
+.catalog-item-meta {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  font-size: 11px; color: var(--sub);
+}
+.catalog-item-meta .program-tag {
+  font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  background: var(--bg); border: 1px solid var(--border);
+}
+.catalog-item-actions {
+  display: flex; gap: 6px; margin-top: 4px;
+}
+.catalog-action-btn {
+  flex: 1; padding: 7px 10px;
+  border: 1px solid var(--orange-mid);
+  background: var(--orange-light); color: var(--orange);
+  border-radius: var(--radius-s);
+  font-size: 12px; font-weight: 700;
+  transition: all var(--transition);
+}
+.catalog-action-btn:active { background: var(--orange); color: #fff; }
+.catalog-action-btn.secondary {
+  border-color: var(--border);
+  background: var(--surface); color: var(--sub);
+}
+.catalog-action-btn.secondary:active { background: var(--text); color: #fff; }
+
+/* ─── 保有資格ダッシュボード ─── */
+.owned-summary {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  border-radius: var(--radius-l); padding: 18px 20px;
+  margin: 0 16px 16px; color: #fff;
+  box-shadow: 0 6px 24px rgba(249,115,22,0.3);
+}
+.owned-summary-title { font-size: 12px; font-weight: 700; opacity: 0.9; margin-bottom: 6px; }
+.owned-summary-val {
+  font-family: 'Nunito', sans-serif;
+  font-size: 36px; font-weight: 900; line-height: 1;
+}
+.owned-summary-val .unit { font-size: 16px; margin-left: 4px; }
+.owned-summary-sub {
+  font-size: 12px; opacity: 0.95; margin-top: 6px;
+  display: flex; justify-content: space-between;
+}
+.owned-cap-bar {
+  height: 6px; background: rgba(255,255,255,0.25); border-radius: 4px;
+  overflow: hidden; margin-top: 10px;
+}
+.owned-cap-fill {
+  height: 100%; background: #fff; border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.owned-cap-label { font-size: 11px; opacity: 0.85; margin-top: 4px; }
+
+.owned-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.owned-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 12px 14px;
+  box-shadow: var(--shadow-card);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px;
+}
+.owned-item-info { flex: 1; min-width: 0; }
+.owned-item-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.owned-item-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.owned-item-amount {
+  font-family: 'Nunito', sans-serif; font-weight: 900;
+  color: var(--orange); flex-shrink: 0; text-align: right;
+}
+.owned-item-amount .v { font-size: 16px; }
+.owned-item-amount .u { font-size: 10px; color: var(--sub); margin-left: 2px; }
+.owned-delete {
+  flex-shrink: 0; background: none; border: none;
+  font-size: 18px; color: var(--sub); padding: 0;
+  opacity: 0.5; border-radius: 4px;
+  transition: opacity var(--transition);
+  min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+.owned-delete:active { opacity: 1; color: var(--red); }
+
+.owned-add-btn {
+  width: calc(100% - 32px); margin: 0 16px 16px;
+  padding: 14px; background: var(--orange-light);
+  color: var(--orange); border: 2px dashed var(--orange-mid);
+  border-radius: var(--radius-m);
+  font-size: 14px; font-weight: 700;
+  transition: all var(--transition);
+}
+.owned-add-btn:active { background: var(--orange); color: #fff; }
+
+/* ─── ボトムナビ：5タブ対応（フォントを少し小さく） ─── */
+nav.nav-5tabs .nav-btn {
+  font-size: 9.5px;
+}
+nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
+
+/* ─── ボトムシート：選択リスト用 ─── */
+.modal-sheet.tall {
+  max-height: 80vh; overflow-y: auto;
+}
+.cert-pick-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.cert-pick-item {
+  padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius-s); background: var(--bg);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; cursor: pointer;
+  transition: all var(--transition);
+}
+.cert-pick-item:active { background: var(--orange-light); border-color: var(--orange-mid); }
+.cert-pick-item.none { color: var(--sub); font-style: italic; }
+.cert-pick-name { flex: 1; padding-right: 8px; }
+
+/* ─── Modal ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.modal-sheet {
+  background: var(--surface); border-radius: var(--radius-l) var(--radius-l) 0 0;
+  width: 100%; max-width: 430px;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.modal-desc  { font-size: 14px; color: var(--sub); margin-bottom: 20px; line-height: 1.6; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; height: 48px; border-radius: var(--radius-s);
+  font-size: 15px; font-weight: 700; border: none;
+  transition: all var(--transition);
+}
+.modal-btn.cancel  { background: var(--border); color: var(--sub); }
+.modal-btn.danger  { background: var(--red); color: #fff; }
+.modal-btn.primary { background: var(--orange); color: #fff; }
+</style>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZmOGM0MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiYmYyNCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjciIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iNyIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjk1Ii8+PHJlY3QgeD0iMTEiIHk9IjkiIHdpZHRoPSIxMyIgaGVpZ2h0PSIxNCIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjg1Ii8+PC9zdmc+">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-logo">🎯 合格ナビ</div>
+    <div class="header-date" id="headerDate">--/--</div>
+  </header>
+
+  <main>
+    <!-- ページ：ホーム -->
+    <div id="page-home" class="page active">
+      <div class="hero-wrap">
+        <div class="cert-tab-row" id="certTabs"></div>
+        <div class="hero-card" id="heroCard"></div>
+        <div class="daily-banner" id="dailyBanner"></div>
+      </div>
+      <div id="alertBanners"></div>
+      <div id="returnSection"></div>
+      <div class="motivation-tag" id="motivationTag"></div>
+      <div id="onboardBanner" style="display:none"></div>
+      <div class="section-head">
+        <span class="section-title">進捗</span>
+      </div>
+      <div id="progressCards"></div>
+      <div class="section-head">
+        <span class="section-title">今週の目標</span>
+      </div>
+      <div class="goal-card" id="goalCard"></div>
+    </div>
+
+    <!-- ページ：記録 -->
+    <div id="page-log" class="page">
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">今日の学習を記録</span>
+        </div>
+        <div class="log-card">
+          <div class="input-group">
+            <label class="input-label-text" for="logCert">試験</label>
+            <select class="input-field" id="logCert"></select>
+          </div>
+          <div class="input-row-2">
+            <div class="input-group">
+              <label class="input-label-text" for="logHours">学習時間</label>
+              <input class="input-field" type="number" id="logHours" min="0.5" max="12" step="0.5" value="1" inputmode="decimal" required>
+            </div>
+            <span class="unit-label">時間</span>
+          </div>
+          <div class="input-group">
+            <label class="input-label-text" for="logDate">日付</label>
+            <input class="input-field" type="date" id="logDate">
+          </div>
+          <div class="input-group">
+            <label class="input-label-text" for="logNote">メモ（任意）</label>
+            <input class="input-field" type="text" id="logNote" placeholder="例：過去問10問、テキスト3章">
+          </div>
+          <button class="btn-primary tappable" onclick="addLog()">記録する ＋</button>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:8px;">
+        <span class="section-title">今週（月〜日）</span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">今週の学習（月〜日）</div>
+        <div class="bar-chart" id="barChart"></div>
+        <div class="chart-legend" id="chartLegend"></div>
+      </div>
+
+      <div class="section-head">
+        <span class="section-title">学習ログ</span>
+        <span class="hist-total" id="histTotal"></span>
+      </div>
+      <div id="historyList" class="history-list"></div>
+      <div id="showMoreWrap"></div>
+    </div>
+
+    <!-- ページ：設定 -->
+    <div id="page-settings" class="page">
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">試験を管理</span>
+        </div>
+      </div>
+      <!-- 試験一覧（動的生成） -->
+      <div id="examList"></div>
+
+      <!-- 試験追加フォーム -->
+      <div class="section-head" style="margin-top:4px;">
+        <span class="section-title">試験を追加</span>
+      </div>
+      <div class="add-exam-card">
+        <div class="input-group">
+          <label class="input-label-text">資格を選ぶ</label>
+          <div class="db-pick-row">
+            <span class="db-pick-badge empty" id="newExamDbBadge">タップして資格DBから選んでください</span>
+            <button class="btn-db-pick tappable" type="button" onclick="openNewExamPicker()">選ぶ</button>
+          </div>
+        </div>
+        <div class="input-row-2">
+          <div class="input-group">
+            <label class="input-label-text" for="newExamDate">試験日</label>
+            <input class="input-field" type="date" id="newExamDate">
+          </div>
+          <div class="input-group">
+            <label class="input-label-text" for="newExamTarget">目標時間</label>
+            <input class="input-field" type="number" id="newExamTarget" min="10" max="1000" placeholder="100" inputmode="numeric">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label-text" for="newExamWeekly">週間目標（時間）</label>
+          <input class="input-field" type="number" id="newExamWeekly" min="1" max="60" placeholder="10" inputmode="numeric">
+        </div>
+        <button class="btn-add-exam tappable" onclick="addExam()">＋ この試験を追加する</button>
+      </div>
+    </div>
+
+    <!-- ページ：カタログ -->
+    <div id="page-catalog" class="page">
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">資格カタログ</span>
+          <span style="font-size:11px;color:var(--sub);">2026年02月版</span>
+        </div>
+      </div>
+      <div class="catalog-search">
+        <span class="catalog-search-icon">🔍</span>
+        <input type="search" id="catalogSearchInput" placeholder="資格名・コードで検索（例: AZ-400, 基本情報）" autocomplete="off">
+      </div>
+      <div class="catalog-filters" id="catalogProgramFilters"></div>
+      <div class="catalog-filters" id="catalogGroupFilters"></div>
+      <div class="catalog-result-count" id="catalogResultCount"></div>
+      <div class="catalog-list" id="catalogList"></div>
+    </div>
+
+    <!-- ページ：保有資格 -->
+    <div id="page-owned" class="page">
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">保有資格 & 累計手当</span>
+        </div>
+      </div>
+      <div id="ownedSummary"></div>
+      <div class="section-head"><span class="section-title">取得済み資格</span></div>
+      <div id="ownedList"></div>
+      <button class="owned-add-btn tappable" onclick="showPage('catalog')">＋ カタログから資格を追加する</button>
+    </div>
+  </main>
+
+  <nav id="bottomNav" class="nav-5tabs">
+    <button class="nav-btn active tappable" data-page="home" onclick="showPage('home')" aria-current="page">
+      <span class="nav-icon">🏠</span><span>ホーム</span>
+    </button>
+    <button class="nav-btn tappable" data-page="log" onclick="showPage('log')">
+      <span class="nav-icon">✏️</span><span>記録</span>
+    </button>
+    <button class="nav-btn tappable" data-page="catalog" onclick="showPage('catalog')">
+      <span class="nav-icon">📚</span><span>カタログ</span>
+    </button>
+    <button class="nav-btn tappable" data-page="owned" onclick="showPage('owned')">
+      <span class="nav-icon">🏆</span><span>保有</span>
+    </button>
+    <button class="nav-btn tappable" data-page="settings" onclick="showPage('settings')">
+      <span class="nav-icon">⚙️</span><span>設定</span>
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<script>
+// ─── Utils ─────────────────────────────────────────────────
+// === 資格データベース（PDFを完全網羅） ====================
+// ============================================================
+// 資格データベース（2026年02月改訂版）
+// PDFの全資格を網羅。program × group × seriesで分類。
+// ============================================================
+
+// 制度（program）
+//   special  : 専門技能手当（月額支給）
+//   self     : 自己啓発支援金（合格時一時金）
+//   ms       : Microsoft特別措置（専門技能手当・5年期限撤廃あり）
+//   snow     : ServiceNow特別措置（自己啓発支援金）
+//
+// 区分（group）
+//   special: '1','2','3','4'   → 月3万/2万/1万/5千円
+//   self:    'A','B','C','D'   → 5万/3万/1万/受験料のみ
+//   ms:      '1','2','3','4'   → 月3万/2万/1万/5千円（特別措置で5年期限撤廃）
+//   snow:    特別な料金体系（一時金）
+
+// ─── 月額/一時金マスター ─────────────────────────────────────
+const PAYMENT_MASTER = {
+  special: { '1': { monthly: 30000, label: '月額 3万円' },
+             '2': { monthly: 20000, label: '月額 2万円' },
+             '3': { monthly: 10000, label: '月額 1万円' },
+             '4': { monthly:  5000, label: '月額 5千円' } },
+  self:    { 'A': { onetime: 50000, label: '一時金 5万円' },
+             'B': { onetime: 30000, label: '一時金 3万円' },
+             'C': { onetime: 10000, label: '一時金 1万円' },
+             'D': { onetime:     0, label: '受験料のみ' } },
+  ms:      { '1': { monthly: 30000, label: '月額 3万円' },
+             '2': { monthly: 20000, label: '月額 2万円' },
+             '3': { monthly: 10000, label: '月額 1万円' },
+             '4': { monthly:  5000, label: '月額 5千円' } },
+};
+
+// ─── 専門技能手当（通常） ─────────────────────────────────────
+const CERTS_SPECIAL = [
+  // 1群（月3万円）
+  { name: 'システム監査', group: '1', series: '情報処理技術者' },
+  { name: 'ITストラテジスト', group: '1', series: '情報処理技術者' },
+  { name: 'エバンジェリスト', group: '1', series: 'IT検証技術者' },
+  { name: 'ITコーディネータ', group: '1', series: 'ITコーディネータ' },
+  { name: 'CCBA', group: '1', series: 'コンサルタント(IIBA)' },
+  { name: 'CBAP', group: '1', series: 'コンサルタント(IIBA)' },
+  { name: 'SAP Certified Professional', group: '1', series: 'SAP' },
+  { name: '公認会計士', group: '1', series: '業務系' },
+  { name: '税理士', group: '1', series: '業務系' },
+  { name: '中小企業診断士', group: '1', series: '業務系' },
+  { name: 'プロジェクトマネージャ', group: '1', series: '情報処理技術者' },
+  { name: 'CCIE', group: '1', series: 'シスコ' },
+
+  // 2群（月2万円）
+  { name: 'システムアーキテクト', group: '2', series: '情報処理技術者' },
+  { name: 'ITサービスマネージャ', group: '2', series: '情報処理技術者' },
+  { name: 'AWS アーキテクト プロフェッショナル認定資格', group: '2', series: 'AWS' },
+  { name: 'AWS DevOps エンジニア プロフェッショナル認定資格', group: '2', series: 'AWS' },
+  { name: 'PMP', group: '2', series: 'PMI' },
+  { name: 'Expert認定資格', group: '2', series: 'SAP' },
+  { name: '教育情報化コーディネーター2級', group: '2', series: '教育情報化コーディネーター' },
+  { name: 'ネットワークスペシャリスト', group: '2', series: '情報処理技術者' },
+  { name: 'エンベデッドシステムスペシャリスト', group: '2', series: '情報処理技術者' },
+  { name: 'Advanced Networking 専門知識資格', group: '2', series: 'マイクロソフト' },
+  { name: '情報処理安全確保支援士（許可制）', group: '2', series: '情報処理技術者' },
+  { name: 'データベーススペシャリスト', group: '2', series: '情報処理技術者' },
+  { name: 'Security 専門知識資格', group: '2', series: 'マイクロソフト' },
+
+  // 3群（月1万円）
+  { name: '応用情報技術者', group: '3', series: '情報処理技術者' },
+  { name: '基本情報技術者', group: '3', series: '情報処理技術者' },
+  { name: 'デザイナー', group: '3', series: 'IT検証技術者' },
+  { name: 'オラクル ゴールド', group: '3', series: 'オラクル' },
+  { name: 'CCNP', group: '3', series: 'シスコ' },
+  { name: 'AWS アソシエイト認定資格', group: '3', series: 'AWS' },
+  { name: 'SAP Certified Associate（Sourcing and Procurement）', group: '3', series: 'SAP' },
+  { name: 'ICT支援員上級認定試験', group: '3', series: '教育情報化コーディネーター' },
+
+  // 4群（月5千円）※下位資格枠（同系列の1〜3群取得時に支給終了）
+  // 公式リストに4群の固有名は明示なし。記載は省略。
+];
+
+// ─── 自己啓発支援金 ─────────────────────────────────────────
+const CERTS_SELF = [
+  // A群（一時金5万円）
+  { name: '固体力学解析技術 上級アナリスト', group: 'A', series: 'CAE' },
+  { name: '熱流体力学解析技術 上級アナリスト', group: 'A', series: 'CAE' },
+  { name: 'CAD利用技術1級（機械）', group: 'A', series: 'CAD' },
+  { name: '振動分野解析技術 上級アナリスト', group: 'A', series: 'CAE' },
+  { name: 'CAD利用技術1級（建築）', group: 'A', series: 'CAD' },
+  { name: '計算力学 固体力学1級', group: 'A', series: 'CAE' },
+  { name: 'OCRES アドバンスト', group: 'A', series: 'UML' },
+  { name: 'シニアモバイルシステムコンサルタント', group: 'A', series: 'MCPC' },
+  { name: 'CAD利用技術1級（トレース）', group: 'A', series: 'CAD' },
+  { name: '計算力学 熱流体力学1級', group: 'A', series: 'CAE' },
+  { name: 'PHP上級', group: 'A', series: 'PHP' },
+  { name: 'OCUP アドバンスト', group: 'A', series: 'UML' },
+  { name: 'モバイルシステム1級', group: 'A', series: 'MCPC' },
+  { name: 'LPIC/LinuC レベル3', group: 'A', series: 'LPI' },
+  { name: 'OSS-DB Gold', group: 'A', series: 'LPI' },
+  { name: 'CAE L4', group: 'A', series: 'CAE' },
+  { name: '3次元CAD利用技術1級', group: 'A', series: 'CAD' },
+  { name: '計算力学 振動分野1級', group: 'A', series: 'CAE' },
+  { name: '英検準1級', group: 'A', series: '英検' },
+  { name: '日商簿記1級', group: 'A', series: '日商簿記' },
+  { name: 'TOEIC 850点以上', group: 'A', series: 'TOEIC' },
+  { name: 'IoTシステム技術検定1級', group: 'A', series: 'IoT' },
+  { name: 'IoT検定1級', group: 'A', series: 'IoT' },
+  { name: 'プロフェッショナルCFO', group: 'A', series: '経理・財務(JACFO)' },
+
+  // B群（一時金3万円）
+  { name: '計算力学 固体力学2級', group: 'B', series: 'CAE' },
+  { name: 'Java EE 7 Application Developer', group: 'B', series: 'JAVA' },
+  { name: 'SAP Certified Associate（Sales）', group: 'B', series: 'SAP' },
+  { name: 'OPCEL', group: 'B', series: 'LPI' },
+  { name: 'Security+', group: 'B', series: 'CompTIA' },
+  { name: '3次元CAD利用技術 準1級', group: 'B', series: 'CAD' },
+  { name: '計算力学 熱流体力学2級', group: 'B', series: 'CAE' },
+  { name: '認定 Tableauデータアナリスト', group: 'B', series: 'Salesforce' },
+  { name: 'オラクル シルバー', group: 'B', series: 'オラクル' },
+  { name: 'OCJP Gold', group: 'B', series: 'JAVA' },
+  { name: 'CCNA', group: 'B', series: 'シスコ' },
+  { name: 'SAP Specialty認定資格', group: 'B', series: 'SAP' },
+  { name: 'PMI Associate認定資格', group: 'B', series: 'PMI' },
+  { name: 'SAP Certified Associate (Developer)', group: 'B', series: 'SAP' },
+  { name: 'PHP準上級', group: 'B', series: 'PHP' },
+  { name: 'UMLレベル2', group: 'B', series: 'UML' },
+  { name: 'CAE中級', group: 'B', series: 'CAE' },
+  { name: 'CADクラス1グレードA', group: 'B', series: 'CAD' },
+  { name: 'LPIC/LinuC レベル2', group: 'B', series: 'LPI' },
+  { name: 'OSS-DB Silver', group: 'B', series: 'LPI' },
+  { name: 'CAE L3', group: 'B', series: 'CAE' },
+  { name: 'OCRES インターメディエイト', group: 'B', series: 'UML' },
+  { name: 'Server+', group: 'B', series: 'CompTIA' },
+  { name: 'CAD利用技術2級', group: 'B', series: 'CAD' },
+  { name: '計算力学 振動分野2級', group: 'B', series: 'CAE' },
+  { name: '英検2級', group: 'B', series: '英検' },
+  { name: '認定上級アドミニストレーター', group: 'B', series: 'Salesforce' },
+  { name: '認定上級Platformデベロッパー', group: 'B', series: 'Salesforce' },
+  { name: '認定TableauServerアドミニストレーター', group: 'B', series: 'Salesforce' },
+  { name: 'Microsoft Expert (E資格)', group: 'B', series: 'マイクロソフト' },
+  { name: 'TOEIC 750点以上', group: 'B', series: 'TOEIC' },
+  { name: '日商簿記準1級', group: 'B', series: '日商簿記' },
+  { name: 'スタンダードCFO', group: 'B', series: '経理・財務(JACFO)' },
+  { name: 'メンタルヘルス・マネジメント検定 Ⅰ種（マスター）', group: 'B', series: 'メンタルヘルス' },
+  { name: '認定 Sales Cloudコンサルタント', group: 'B', series: 'Salesforce' },
+  { name: '認定Platformアプリケーションビルダー', group: 'B', series: 'Salesforce' },
+  { name: '認定 Service Cloudコンサルタント', group: 'B', series: 'Salesforce' },
+  { name: '認定Platformデベロッパー', group: 'B', series: 'Salesforce' },
+  { name: 'Specialist認定', group: 'B', series: 'Salesforce' },
+  { name: 'ハラスメント相談員', group: 'B', series: 'ハラスメント' },
+
+  // C群（一時金1万円）
+  { name: 'IT検証技術者 テスター', group: 'C', series: 'IT検証技術者' },
+  { name: 'オラクル ブロンズ', group: 'C', series: 'オラクル' },
+  { name: 'OCJP Silver', group: 'C', series: 'JAVA' },
+  { name: 'SAP Fundamentals認定資格', group: 'C', series: 'SAP' },
+  { name: 'PMI 基礎認定資格', group: 'C', series: 'PMI' },
+  { name: 'SAP Associate レベル1', group: 'C', series: 'SAP' },
+  { name: 'CADクラス1 グレードB', group: 'C', series: 'CAD' },
+  { name: 'CADクラス1 グレードC', group: 'C', series: 'CAD' },
+  { name: 'LPIC/LinuC レベル1', group: 'C', series: 'LPI' },
+  { name: 'CAE L2', group: 'C', series: 'CAE' },
+  { name: 'OCUP インターメディエイト', group: 'C', series: 'UML' },
+  { name: 'Network+', group: 'C', series: 'CompTIA' },
+  { name: 'ADVANCEモバイルシステム2級', group: 'C', series: 'MCPC' },
+  { name: '3次元CAD利用技術2級', group: 'C', series: 'CAD' },
+  { name: '英検3級', group: 'C', series: '英検' },
+  { name: '認定エキスパート', group: 'C', series: 'Salesforce' },
+  { name: '認定アドミニストレーター', group: 'C', series: 'Salesforce' },
+  { name: '認定JavaScriptデベロッパー', group: 'C', series: 'Salesforce' },
+  { name: '認定Tableau Desktop', group: 'C', series: 'Salesforce' },
+  { name: 'Microsoft 基礎Professional（AZ-900）', code: 'AZ-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（SC-900）', code: 'SC-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（AI-900）', code: 'AI-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（MS-900）', code: 'MS-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（DP-900）', code: 'DP-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（PL-900）', code: 'PL-900', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（MB-910）', code: 'MB-910', group: 'C', series: 'マイクロソフト' },
+  { name: 'Microsoft 基礎Professional（MB-920）', code: 'MB-920', group: 'C', series: 'マイクロソフト' },
+  { name: '日商簿記Ｂ級', group: 'C', series: '日商簿記' },
+  { name: '日商簿記2級', group: 'C', series: '日商簿記' },
+  { name: 'AWS Professional検定', group: 'C', series: 'AWS' },
+  { name: 'TOEIC 650点以上', group: 'C', series: 'TOEIC' },
+  { name: 'IoTシステム技術検定2級', group: 'C', series: 'IoT' },
+  { name: 'IoT検定2級', group: 'C', series: 'IoT' },
+  { name: 'FASS レベルＣ', group: 'C', series: '経理・財務(JACFO)' },
+  { name: 'ビジネス会計検定2級', group: 'C', series: 'ビジネス会計検定' },
+  { name: 'メンタルヘルス・マネジメント検定 Ⅱ種（ラインケア）', group: 'C', series: 'メンタルヘルス' },
+  { name: 'ハラスメントマネージャー', group: 'C', series: 'ハラスメント' },
+
+  // D群（受験料のみ）
+  { name: 'ITパスポート', group: 'D', series: '情報処理技術者' },
+  { name: '情報セキュリティマネジメント', group: 'D', series: '情報処理技術者' },
+  { name: '教育情報化コーディネーター3級', group: 'D', series: '教育情報化コーデイネータ' },
+  { name: 'データサイエンティスト検定アシスタント', group: 'D', series: '統計検定' },
+  { name: 'OCJP Bronze', group: 'D', series: 'JAVA' },
+  { name: 'ICT支援員認定試験', group: 'D', series: '教育情報化コーデイネータ' },
+  { name: 'PHP初級', group: 'D', series: 'PHP' },
+  { name: 'UML基礎', group: 'D', series: 'UML' },
+  { name: 'CADクラス2 グレードA', group: 'D', series: 'CAD' },
+  { name: 'CAE L1', group: 'D', series: 'CAE' },
+  { name: 'OCUP ファンダメンタル', group: 'D', series: 'UML' },
+  { name: 'A+', group: 'D', series: 'CompTIA' },
+  { name: 'ITIL ファンデーション', group: 'D', series: 'ITIL' },
+  { name: 'CAD利用技術基礎', group: 'D', series: 'CAD' },
+  { name: '英検4級', group: 'D', series: '英検' },
+  { name: 'AWS アソシエイト（Associate）', group: 'D', series: 'AWS' },
+  { name: 'G検定（ジェネラリスト検定）', group: 'D', series: 'JDLA認定資格' },
+  { name: '生成AIパスポート', group: 'D', series: 'JDLA認定資格' },
+  { name: 'CompTIA C級', group: 'D', series: 'CompTIA' },
+  { name: '日商簿記3級', group: 'D', series: '日商簿記' },
+  { name: 'SAP Standard資格', group: 'D', series: 'SAP' },
+  { name: 'ビジネス会計検定3級', group: 'D', series: 'ビジネス会計検定' },
+  { name: 'メンタルヘルス・マネジメント検定 Ⅲ種（セルフケア）', group: 'D', series: 'メンタルヘルス' },
+  { name: 'RPA技術者検定', group: 'D', series: 'RPA' },
+  { name: 'IMA（Internet Marketing Analyst）', group: 'D', series: 'マーケティング' },
+  { name: 'マーケティング・ビジネス実務検定', group: 'D', series: 'マーケティング' },
+  { name: 'ビジネスキャリア検定', group: 'D', series: 'ビジネスキャリア' },
+  { name: 'JDLA認定資格', group: 'D', series: 'JDLA認定資格' },
+  { name: 'JASA組込技術者', group: 'D', series: 'JASA' },
+  { name: 'データサイエンティスト検定', group: 'D', series: '統計検定' },
+];
+
+// ─── Microsoft特別措置（カテゴリ別） ─────────────────────────
+// retiredAt: その日まで対象 / null=継続
+// category: 同一カテゴリ内では重複支給なし
+const CERTS_MS = [
+  // Modern Work
+  { name: 'Administrator Expert', code: '', group: '1', series: 'マイクロソフト', category: 'Modern Work' },
+  { name: 'Azure Virtual Desktop Specialty', code: 'AZ-140', group: '2', series: 'マイクロソフト', category: 'Modern Work' },
+  // Infrastructure
+  { name: 'DevOps Engineer Expert', code: 'AZ-400', group: '1', series: 'マイクロソフト', category: 'Infrastructure' },
+  { name: 'Azure for SAP Workloads Specialty', code: 'AZ-120', group: '2', series: 'マイクロソフト', category: 'Infrastructure' },
+  // Business Applications
+  { name: 'Dynamics 365 Supply Chain Management Functional Consultant Expert', code: 'MB-330', group: '1', series: 'マイクロソフト', category: 'Business Applications' },
+  { name: 'Dynamics 365: Finance and Operations Apps Solution Architect Expert', code: 'MB-700', group: '1', series: 'マイクロソフト', category: 'Business Applications' },
+  { name: 'Power Platform Solution Architect Expert (2群)', code: 'PL-600', group: '2', series: 'マイクロソフト', category: 'Business Applications' },
+  { name: 'Dynamics 365 Business Central Developer Associate', code: 'MB-820', group: '3', series: 'マイクロソフト', category: 'Business Applications' },
+  { name: 'Power Platform Solution Architect Expert (3群)', code: 'PL-600', group: '3', series: 'マイクロソフト', category: 'Business Applications' },
+  { name: 'Dynamics 365 Customer Insights (Data) Specialty', code: 'MB-260', group: '3', series: 'マイクロソフト', category: 'Business Applications' },
+  // Data & AI
+  { name: 'Azure Database Administrator Associate', code: 'DP-300', group: '2', series: 'マイクロソフト', category: 'Data & AI' },
+  { name: 'Azure Data Scientist Associate', code: 'DP-100', group: '3', series: 'マイクロソフト', category: 'Data & AI', retiredAt: '2026-03-31' },
+  { name: 'Azure Data Engineer Associate', code: 'DP-203', group: '3', series: 'マイクロソフト', category: 'Data & AI' },
+  { name: 'Power BI Data Analyst Associate', code: 'PL-300', group: '3', series: 'マイクロソフト', category: 'Data & AI', retiredAt: '2025-11-30' },
+  { name: 'Azure Cosmos DB Developer Specialty', code: 'DP-420', group: '3', series: 'マイクロソフト', category: 'Data & AI' },
+  { name: 'Fabric Analytics Engineer Associate', code: 'DP-600', group: '3', series: 'マイクロソフト', category: 'Data & AI' },
+  { name: 'Fabric Data Engineer Associate', code: 'DP-700', group: '3', series: 'マイクロソフト', category: 'Data & AI' },
+  // Digital & App Innovation
+  { name: 'Azure AI Engineer Associate', code: 'AI-102', group: '2', series: 'マイクロソフト', category: 'Digital & App Innovation' },
+  // Security
+  { name: 'Cybersecurity Architect Expert', code: 'SC-100', group: '1', series: 'マイクロソフト', category: 'Security' },
+  { name: 'Identity and Access Administrator Associate', code: 'SC-300', group: '3', series: 'マイクロソフト', category: 'Security' },
+  { name: 'Information Protection and Compliance Administrator Associate', code: 'SC-400', group: '3', series: 'マイクロソフト', category: 'Security' },
+];
+
+// MS特別措置の改定タイミング（毎年7月）
+const MS_REVIEW_DATE = '2026-07-01'; // 次回改定予定
+
+// ─── ServiceNow特別措置 ─────────────────────────────────────
+// 2025年4月1日 〜 2027年3月31日
+const CERTS_SNOW = [
+  { name: 'Certified Implementation Specialist', group: 'snow-cis', series: 'ServiceNow',
+    onetime: 100000, label: '一時金 10万円', condition: '期間中の合格' },
+  { name: 'Certified Application Developer (先着3件)', group: 'snow-cad-top', series: 'ServiceNow',
+    onetime: 50000, label: '一時金 5万円', condition: '先着3件まで' },
+  { name: 'Certified Application Developer (4件目以降)', group: 'snow-cad', series: 'ServiceNow',
+    onetime: 30000, label: '一時金 3万円', condition: '先着4件目以降' },
+  { name: 'Certified System Administrator (先着3件)', group: 'snow-csa-top', series: 'ServiceNow',
+    onetime: 50000, label: '一時金 5万円', condition: '先着3件まで' },
+  { name: 'Certified System Administrator (4件目以降)', group: 'snow-csa', series: 'ServiceNow',
+    onetime: 30000, label: '一時金 3万円', condition: '先着4件目以降' },
+];
+const SNOW_PERIOD_END = '2027-03-31';
+
+// ─── 統合データベース（program付与） ─────────────────────────
+const CERT_DB = [
+  ...CERTS_SPECIAL.map(c => ({ ...c, program: 'special' })),
+  ...CERTS_SELF.map(c => ({ ...c, program: 'self' })),
+  ...CERTS_MS.map(c => ({ ...c, program: 'ms' })),
+  ...CERTS_SNOW.map(c => ({ ...c, program: 'snow' })),
+];
+
+// 各エントリにキー（id）を付与（検索・参照用）
+CERT_DB.forEach((c, i) => { c.dbId = `${c.program}_${i}`; });
+
+// ─── ヘルパー関数 ───────────────────────────────────────────
+
+// 制度ラベル
+function programLabel(program) {
+  return ({
+    special: '専門技能手当',
+    self:    '自己啓発支援金',
+    ms:      'MS特別措置',
+    snow:    'ServiceNow特別措置',
+  })[program] || program;
+}
+
+// 区分ラベル（◯群／◯群）
+function groupLabel(program, group) {
+  if (program === 'special' || program === 'ms') return `${group}群`;
+  if (program === 'self') return `${group}群`;
+  if (program === 'snow') return '特別';
+  return group;
+}
+
+// 月額・一時金情報
+function getPayment(entry) {
+  if (entry.program === 'snow') {
+    return { monthly: 0, onetime: entry.onetime || 0, label: entry.label || '' };
+  }
+  const p = PAYMENT_MASTER[entry.program]?.[entry.group];
+  if (!p) return { monthly: 0, onetime: 0, label: '' };
+  return {
+    monthly: p.monthly || 0,
+    onetime: p.onetime || 0,
+    label: p.label || '',
+  };
+}
+
+// 期待リターン情報
+function calcReturn(entry) {
+  const p = getPayment(entry);
+  // 受験料：全エントリで会社支給扱い（PDF上、◯マークは支給対象）
+  const examFee = '会社支給';
+  if (p.onetime > 0) {
+    return {
+      type: 'onetime',
+      onetime: p.onetime,
+      monthly: 0,
+      yearly: 0,
+      fiveYear: p.onetime,
+      examFee,
+    };
+  }
+  if (p.monthly > 0) {
+    const yearly = p.monthly * 12;
+    const fiveYear = yearly * 5;
+    // MS特別措置の対象期間中は5年期限が撤廃される
+    const noLimit = entry.program === 'ms';
+    return {
+      type: 'monthly',
+      monthly: p.monthly,
+      yearly,
+      fiveYear,
+      noLimit,
+      examFee,
+    };
+  }
+  return { type: 'none', monthly: 0, onetime: 0, yearly: 0, fiveYear: 0, examFee };
+}
+
+// アラート判定（廃止予定・特別措置改定など）
+function checkAlerts(entry, today = new Date()) {
+  const alerts = [];
+  // 廃止予定資格
+  if (entry.retiredAt) {
+    const retired = new Date(entry.retiredAt);
+    const diff = Math.ceil((retired - today) / 86400000);
+    if (diff > 0 && diff <= 365) {
+      alerts.push({ kind: 'retire', urgency: diff <= 90 ? 'high' : 'mid',
+        message: `${entry.retiredAt}に廃止予定（あと${diff}日）` });
+    } else if (diff <= 0) {
+      alerts.push({ kind: 'retired', urgency: 'expired',
+        message: '既に廃止済み' });
+    }
+  }
+  // MS特別措置：改定タイミング警告
+  if (entry.program === 'ms') {
+    const review = new Date(MS_REVIEW_DATE);
+    const diff = Math.ceil((review - today) / 86400000);
+    if (diff > 0 && diff <= 180) {
+      alerts.push({ kind: 'review', urgency: diff <= 90 ? 'mid' : 'low',
+        message: `特別措置改定まで${diff}日（5年期限撤廃の対象外になる可能性）` });
+    }
+  }
+  // ServiceNow特別措置：終了タイミング
+  if (entry.program === 'snow') {
+    const end = new Date(SNOW_PERIOD_END);
+    const diff = Math.ceil((end - today) / 86400000);
+    if (diff > 0 && diff <= 365) {
+      alerts.push({ kind: 'snow-end', urgency: diff <= 90 ? 'high' : 'mid',
+        message: `特別措置は${SNOW_PERIOD_END}まで（あと${diff}日）` });
+    }
+  }
+  return alerts;
+}
+
+// 名前で検索（部分一致）
+function searchCertDb(query, filters = {}) {
+  const q = (query || '').toLowerCase().trim();
+  return CERT_DB.filter(c => {
+    if (filters.program && c.program !== filters.program) return false;
+    if (filters.group   && c.group   !== filters.group)   return false;
+    if (filters.series  && c.series  !== filters.series)  return false;
+    if (!q) return true;
+    const text = `${c.name} ${c.code || ''} ${c.series}`.toLowerCase();
+    return text.includes(q);
+  });
+}
+
+// 系列リスト（フィルタUI用）
+function listSeries(program = null) {
+  const set = new Set();
+  CERT_DB.forEach(c => {
+    if (program && c.program !== program) return;
+    set.add(c.series);
+  });
+  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+
+// 区分リスト（フィルタUI用）
+function listGroups(program = null) {
+  const set = new Set();
+  CERT_DB.forEach(c => {
+    if (program && c.program !== program) return;
+    set.add(c.group);
+  });
+  return [...set].sort();
+}
+
+// === ここまで資格データベース ===========================
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+const newId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const haptic = (type = 'light') => navigator.vibrate?.(type === 'heavy' ? 30 : 10);
+
+// ─── Constants ─────────────────────────────────────────────
+const STORAGE_KEY  = 'certdash_v5';
+const MAX_LOGS     = 500;
+const MAX_EXAMS    = 8;
+const HISTORY_PAGE = 20;
+
+const EMOJI_OPTIONS = ['📘','☁️','🖥️','🔐','🌐','📊','⚙️','🧠','📱','🎓','🏆','💡','🔬','📡','🗄️','✈️'];
+const MAX_LINKS    = 8; // 試験1件あたりのリンク上限
+
+// 試験ごとのグラフ色パレット
+const EXAM_COLORS = [
+  '#8b5cf6','#3b82f6','#f97316','#22c55e',
+  '#ec4899','#14b8a6','#f59e0b','#64748b'
+];
+
+const MOTIVATION_MSGS = [
+  '🔥 今日も一歩、合格へ近づこう！',
+  '✨ 継続は力なり。今日もお疲れさま！',
+  '🚀 その積み重ねが、未来を変える！',
+  '💪 諦めなければ、必ず合格できる！',
+  '🌟 今日の努力が明日の自信になる！',
+  '🎯 ゴールまで着実に歩んでいる！',
+  '⚡ 小さな一歩が大きな成果になる！',
+];
+
+// ─── State ─────────────────────────────────────────────────
+function makeDefaultExams() {
+  const d = (n) => { const dd = new Date(); dd.setDate(dd.getDate() + n); return dd.toISOString().split('T')[0]; };
+  // DB上の対応資格があればIDを引く
+  const findId = (name) => CERT_DB.find(c => c.name === name)?.dbId || null;
+  return [
+    { id: newId(), name: '基本情報技術者試験', emoji: '📘', examDate: d(90),  weeklyHours: 10, targetHours: 200, color: EXAM_COLORS[0], certDbId: findId('基本情報技術者'), links: [
+      { id: newId(), label: '過去問道場', url: 'https://www.fe-siken.com/' },
+    ]},
+    { id: newId(), name: 'AZ-900',             emoji: '☁️', examDate: d(45),  weeklyHours: 5,  targetHours: 50,  color: EXAM_COLORS[1], certDbId: findId('Microsoft 基礎Professional（AZ-900）'), links: [
+      { id: newId(), label: 'Microsoft Learn', url: 'https://learn.microsoft.com/ja-jp/credentials/certifications/azure-fundamentals/' },
+    ]},
+  ];
+}
+
+function defaultState() {
+  return {
+    exams: makeDefaultExams(),
+    logs: [],
+    owned: [],
+    ui: { heroExamId: null, currentPage: 'home', historyPage: 1 },
+    streak: { count: 0, lastDate: '' }
+  };
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) {
+      const p = JSON.parse(s);
+      // マイグレーション
+      if (!p.exams) p.exams = makeDefaultExams();
+      if (!p.ui) p.ui = { heroExamId: null, currentPage: 'home', historyPage: 1 };
+      if (!p.ui.historyPage) p.ui.historyPage = 1;
+      if (!p.streak) p.streak = { count: 0, lastDate: '' };
+      // 各試験にcolorがなければ補完、linksがなければ空配列
+      p.exams.forEach((e, i) => {
+        if (!e.color) e.color = EXAM_COLORS[i % EXAM_COLORS.length];
+        if (!e.links) e.links = [];
+        if (!('certDbId' in e)) e.certDbId = null; // 資格DBと紐付け（任意）
+      });
+      // 取得済み資格リスト（保有資格機能用）
+      if (!p.owned) p.owned = [];
+      return p;
+    }
+  } catch(e) {}
+  return defaultState();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') showToast('⚠️ 保存容量が上限に達しました');
+  }
+}
+
+let state = loadState();
+
+// ─── Exam helpers ───────────────────────────────────────────
+function getExam(id) { return state.exams.find(e => e.id === id); }
+function getHeroExam() {
+  return getExam(state.ui.heroExamId) || state.exams[0] || null;
+}
+
+// ─── Calc Helpers ───────────────────────────────────────────
+function daysUntil(dateStr) {
+  const target = new Date(dateStr);
+  const now = new Date();
+  now.setHours(0,0,0,0); target.setHours(0,0,0,0);
+  return Math.round((target - now) / 86400000);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function getTotalHours(examId) {
+  return state.logs.filter(l => l.examId === examId).reduce((s, l) => s + l.hours, 0);
+}
+
+function getWeekDays() {
+  const today = new Date();
+  const dow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+  return days;
+}
+
+function getWeekHours(examId) {
+  const weekDays = getWeekDays();
+  return state.logs
+    .filter(l => l.examId === examId && weekDays.includes(l.date))
+    .reduce((s, l) => s + l.hours, 0);
+}
+
+function getDayHours(examId, dateStr) {
+  return state.logs
+    .filter(l => l.examId === examId && l.date === dateStr)
+    .reduce((s, l) => s + l.hours, 0);
+}
+
+function getProgress(exam) {
+  return Math.min(100, Math.round((getTotalHours(exam.id) / exam.targetHours) * 100));
+}
+
+function getDailyRequired(exam) {
+  const days = daysUntil(exam.examDate);
+  if (days < 0) return 'past';
+  if (days === 0) return null;
+  const remaining = Math.max(0, exam.targetHours - getTotalHours(exam.id));
+  if (remaining === 0) return 0;
+  return remaining / days;
+}
+
+// ─── Streak ────────────────────────────────────────────────
+function updateStreak() {
+  const today = new Date().toISOString().split('T')[0];
+  if (!state.logs.some(l => l.date === today)) return;
+  const last = state.streak.lastDate;
+  if (last === today) return;
+  const yesterday = (() => {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  })();
+  state.streak.count = (last === yesterday) ? state.streak.count + 1 : (last === '' ? 1 : 1);
+  state.streak.lastDate = today;
+}
+
+// ─── Plan vs Actual ────────────────────────────────────────
+function getPlanVsActual(exam) {
+  const examDate = new Date(exam.examDate);
+  const totalTarget = exam.targetHours;
+  const sorted = state.logs.filter(l => l.examId === exam.id).map(l => l.date).sort();
+  const startDate = sorted.length ? new Date(sorted[0]) : (() => { const d = new Date(examDate); d.setDate(d.getDate() - 90); return d; })();
+  const totalDays = Math.max(1, Math.round((examDate - startDate) / 86400000));
+  const elapsed   = totalDays - Math.max(0, daysUntil(exam.examDate));
+  const planned   = Math.min(totalTarget, (totalTarget / totalDays) * Math.max(0, elapsed));
+  const actual    = getTotalHours(exam.id);
+  return {
+    planned: Math.round(planned * 10) / 10,
+    actual:  Math.round(actual  * 10) / 10,
+    diff:    Math.round((actual - planned) * 10) / 10
+  };
+}
+
+// ─── Render: Hero Tabs ──────────────────────────────────────
+function renderCertTabs() {
+  const hero = getHeroExam();
+  document.getElementById('certTabs').innerHTML = state.exams.map(e =>
+    `<button class="cert-tab tappable${e.id === hero?.id ? ' active' : ''}"
+      data-exam-id="${escapeHtml(e.id)}"
+      onclick="switchHeroExam('${escapeHtml(e.id)}')"
+      aria-pressed="${e.id === hero?.id}">
+      ${escapeHtml(e.emoji)} ${escapeHtml(e.name)}
+    </button>`
+  ).join('');
+}
+
+function switchHeroExam(examId) {
+  state.ui.heroExamId = examId;
+  saveState();
+  renderCertTabs();
+  renderHero();
+  renderDailyBanner();
+  renderAlertBanners();
+  renderReturnSection();
+}
+
+// ─── Link helpers ──────────────────────────────────────────
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' ? u.href : null;
+  } catch { return null; }
+}
+
+function renderHeroLinks(exam) {
+  if (!exam.links || !exam.links.length) return '';
+  const btns = exam.links.map(l => {
+    const href = safeUrl(l.url);
+    if (!href) return '';
+    return `<a class="hero-link-btn tappable" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
+      <span class="hero-link-icon">🔗</span>${escapeHtml(l.label)}
+    </a>`;
+  }).join('');
+  return btns ? `<div class="hero-links">${btns}</div>` : '';
+}
+
+// ─── Render: Hero Card ─────────────────────────────────────
+function renderHero() {
+  const exam = getHeroExam();
+  if (!exam) {
+    document.getElementById('heroCard').innerHTML = `
+      <div style="position:relative;z-index:1;text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:8px;">📋</div>
+        <div style="font-size:14px;font-weight:700;opacity:0.9;">試験が登録されていません</div>
+        <div style="font-size:12px;opacity:0.75;margin-top:4px;">設定から試験を追加してください</div>
+      </div>`;
+    return;
+  }
+  const days = daysUntil(exam.examDate);
+  const streak = state.streak.count;
+  const streakEmoji = streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '📅';
+  const prog = getProgress(exam);
+
+  if (days < 0) {
+    document.getElementById('heroCard').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
+        <div class="hero-cert-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ${renderCertBadge(getExamCertEntry(exam))}<br><span style="font-weight:500;opacity:0.8;font-size:12px;">試験日 ${formatDate(exam.examDate)}</span></div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+          <div style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;line-height:1;">${streakEmoji} ${streak}</div>
+          <div style="font-size:10px;opacity:0.8;">日連続</div>
+        </div>
+      </div>
+      <div class="hero-days-left" style="font-size:36px;padding:8px 0;">試験終了</div>
+      <div class="hero-days-label">${Math.abs(days)}日前に試験日が過ぎました — 進捗 ${prog}%</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val">${getTotalHours(exam.id).toFixed(1)}<span style="font-size:14px">h</span></div>
+          <div class="hero-stat-key">累計学習</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">${prog}<span style="font-size:14px">%</span></div>
+          <div class="hero-stat-key">進捗率</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">${getWeekHours(exam.id).toFixed(1)}<span style="font-size:14px">h</span></div>
+          <div class="hero-stat-key">今週</div>
+        </div>
+      </div>
+      ${renderHeroLinks(exam)}`;
+    return;
+  }
+
+  const remaining = Math.max(0, exam.targetHours - getTotalHours(exam.id));
+  document.getElementById('heroCard').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
+      <div class="hero-cert-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ${renderCertBadge(getExamCertEntry(exam))}<br><span style="font-weight:500;opacity:0.8;font-size:12px;">試験日 ${formatDate(exam.examDate)}</span></div>
+      <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+        <div style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;line-height:1;">${streakEmoji} ${streak}</div>
+        <div style="font-size:10px;opacity:0.8;">日連続</div>
+      </div>
+    </div>
+    <div class="hero-days-left">${days}</div>
+    <div class="hero-days-label">日後に試験 — 進捗 ${prog}%</div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val">${remaining.toFixed(1)}<span style="font-size:14px">h</span></div>
+        <div class="hero-stat-key">残り必要時間</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">${getTotalHours(exam.id).toFixed(1)}<span style="font-size:14px">h</span></div>
+        <div class="hero-stat-key">累計学習</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">${getWeekHours(exam.id).toFixed(1)}<span style="font-size:14px">h</span></div>
+        <div class="hero-stat-key">今週</div>
+      </div>
+    </div>
+    ${renderHeroLinks(exam)}`;
+}
+
+// ─── Render: Daily Banner ──────────────────────────────────
+function renderDailyBanner() {
+  const exam = getHeroExam();
+  const banner = document.getElementById('dailyBanner');
+  if (!exam) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+
+  const daily = getDailyRequired(exam);
+  if (daily === 'past') {
+    banner.className = 'daily-banner safe';
+    banner.innerHTML = `
+      <div class="daily-banner-icon">🏁</div>
+      <div class="daily-banner-text">
+        <div class="daily-banner-val">試験は終了しました</div>
+        <div class="daily-banner-desc">設定から新しい試験を登録しましょう</div>
+      </div>`;
+    return;
+  }
+  if (daily === null) {
+    banner.className = 'daily-banner warn';
+    banner.innerHTML = `
+      <div class="daily-banner-icon">📅</div>
+      <div class="daily-banner-text">
+        <div class="daily-banner-val">試験当日！</div>
+        <div class="daily-banner-desc">全力で頑張れ！応援しています🎌</div>
+      </div>`;
+    return;
+  }
+  if (daily === 0) {
+    banner.className = 'daily-banner safe';
+    banner.innerHTML = `
+      <div class="daily-banner-icon">🎉</div>
+      <div class="daily-banner-text">
+        <div class="daily-banner-val">目標達成！</div>
+        <div class="daily-banner-desc">必要な学習時間をクリアしました！</div>
+      </div>`;
+    return;
+  }
+  const d = daily.toFixed(1);
+  let cls, icon, desc;
+  if      (daily <= 2) { cls = 'safe';   icon = '😊'; desc = '余裕あり！このペースで続けよう'; }
+  else if (daily <= 4) { cls = 'warn';   icon = '⚡'; desc = '少しペースアップが必要です'; }
+  else                 { cls = 'danger'; icon = '🔥'; desc = '追い込みが必要！集中して！'; }
+  banner.className = `daily-banner ${cls}`;
+  banner.innerHTML = `
+    <div class="daily-banner-icon">${icon}</div>
+    <div class="daily-banner-text">
+      <div class="daily-banner-val">${d}h<span style="font-size:14px;font-weight:500;margin-left:4px">/ 日</span></div>
+      <div class="daily-banner-desc">今日から毎日これだけ勉強すれば合格ペース — ${desc}</div>
+    </div>`;
+}
+
+// ─── Render: Motivation ────────────────────────────────────
+function renderMotivation() {
+  const idx = Math.floor(Math.random() * MOTIVATION_MSGS.length);
+  document.getElementById('motivationTag').textContent = MOTIVATION_MSGS[idx];
+}
+
+// ─── Render: Onboarding ────────────────────────────────────
+function renderOnboarding() {
+  const banner = document.getElementById('onboardBanner');
+  if (!banner) return;
+  if (state.exams.length === 0) {
+    banner.style.display = 'flex';
+    banner.className = 'onboard-banner';
+    banner.innerHTML = `
+      <div class="onboard-banner-text">⚙️ まず受験する試験を設定から追加しましょう！</div>
+      <button class="onboard-banner-btn tappable" onclick="showPage('settings')">設定へ →</button>`;
+  } else if (state.logs.length === 0) {
+    banner.style.display = 'flex';
+    banner.className = 'onboard-banner';
+    banner.innerHTML = `
+      <div class="onboard-banner-text">✏️ 記録タブから学習時間を入力してみましょう！</div>
+      <button class="onboard-banner-btn tappable" onclick="showPage('log')">記録へ →</button>`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// ─── Render: Progress Cards ────────────────────────────────
+function renderProgress() {
+  const el = document.getElementById('progressCards');
+  if (!state.exams.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">試験が未登録です</div><div class="empty-desc">設定から試験を追加してください</div></div>`;
+    return;
+  }
+  el.innerHTML = state.exams.map(exam => {
+    const prog  = getProgress(exam);
+    const total = getTotalHours(exam.id);
+    const pva   = getPlanVsActual(exam);
+    const hasLogs = total > 0;
+    const diffAbs = Math.abs(pva.diff);
+    const isAhead = pva.diff >= 0;
+    const diffColor = isAhead ? '#16a34a' : 'var(--red)';
+    const diffBg    = isAhead ? 'var(--green-light)' : 'var(--red-light)';
+    const diffLabel = pva.diff === 0 ? '計画通り' : isAhead ? `+${diffAbs}h 貯金` : `-${diffAbs}h 借り`;
+    const diffIcon  = isAhead ? '↑' : '↓';
+    const certEntry = getExamCertEntry(exam);
+    return `
+    <div class="progress-card">
+      <div class="prog-header">
+        <span class="prog-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ${renderCertBadge(certEntry)}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${hasLogs ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${diffBg};color:${diffColor};">${diffIcon} ${diffLabel}</span>` : ''}
+          <span class="prog-pct" style="color:${exam.color}">${prog}%</span>
+        </div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-fill" style="width:${prog}%;background:${exam.color};"></div>
+      </div>
+      <div class="prog-meta">
+        <span>${total.toFixed(1)}h 学習済み（計画 ${pva.planned}h）</span>
+        <span>目標 ${exam.targetHours}h</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Goals ─────────────────────────────────────────
+function renderGoals() {
+  const el = document.getElementById('goalCard');
+  if (!state.exams.length) { el.innerHTML = ''; return; }
+  el.innerHTML = state.exams.map(exam => {
+    const week  = getWeekHours(exam.id);
+    const goal  = exam.weeklyHours;
+    const ratio = goal > 0 ? Math.round((week / goal) * 100) : 0;
+    const done  = week >= goal;
+    return `
+    <div class="goal-row">
+      <div>
+        <div class="goal-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)}</div>
+        <div class="goal-sub">今週 ${week.toFixed(1)}h / 目標 ${goal}h（${ratio}%）</div>
+      </div>
+      <span class="goal-badge ${done ? 'done' : 'pend'}">${done ? '🎉 達成！' : `あと ${(goal - week).toFixed(1)}h`}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Bar Chart ─────────────────────────────────────
+function renderBarChart() {
+  const days    = getWeekDays();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const labels  = ['月','火','水','木','金','土','日'];
+
+  const maxH = Math.max(1, ...days.map(d =>
+    state.exams.reduce((s, e) => s + getDayHours(e.id, d), 0)
+  ));
+
+  document.getElementById('barChart').innerHTML = days.map((d, i) => {
+    const isFuture = d > todayStr;
+    const isToday  = d === todayStr;
+    const total    = state.exams.reduce((s, e) => s + getDayHours(e.id, d), 0);
+    const valLabel = total > 0 ? total.toFixed(1) : '';
+    const bars = state.exams.map(e => {
+      const h  = getDayHours(e.id, d);
+      const px = Math.max(h > 0 ? 4 : 0, Math.round((h / maxH) * 72));
+      return `<div class="bar" style="height:${px}px;background:${escapeHtml(e.color)};width:${Math.max(6, Math.floor(40/state.exams.length))}px;"></div>`;
+    }).join('');
+    return `
+    <div class="bar-group" style="${isFuture ? 'opacity:0.3' : ''}">
+      <div class="bar-val">${valLabel}</div>
+      <div class="bars">${bars}</div>
+      <div class="bar-day${isToday ? ' today' : ''}">${labels[i]}</div>
+    </div>`;
+  }).join('');
+
+  // 凡例
+  document.getElementById('chartLegend').innerHTML = state.exams.map(e =>
+    `<span><span class="legend-dot" style="background:${escapeHtml(e.color)}"></span>${escapeHtml(e.emoji)} ${escapeHtml(e.name)}</span>`
+  ).join('');
+}
+
+// ─── Render: Log select ────────────────────────────────────
+function renderLogCertSelect() {
+  const sel = document.getElementById('logCert');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = state.exams.map(e =>
+    `<option value="${escapeHtml(e.id)}"${e.id === cur ? ' selected' : ''}>${escapeHtml(e.emoji)} ${escapeHtml(e.name)}</option>`
+  ).join('');
+}
+
+// ─── Render: History ───────────────────────────────────────
+function renderHistory() {
+  const el          = document.getElementById('historyList');
+  const showMoreWrap = document.getElementById('showMoreWrap');
+  const histTotal   = document.getElementById('histTotal');
+  const allLogs     = [...state.logs].reverse();
+  const page        = state.ui.historyPage || 1;
+  const showCount   = page * HISTORY_PAGE;
+  const logs        = allLogs.slice(0, showCount);
+  const hasMore     = allLogs.length > showCount;
+
+  const grandTotal = state.logs.reduce((s, l) => s + l.hours, 0);
+  histTotal.innerHTML = allLogs.length > 0
+    ? `合計 <span>${grandTotal.toFixed(1)}h</span>` : '';
+
+  if (!allLogs.length) {
+    el.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">📖</div>
+      <div class="empty-title">まだ記録がありません</div>
+      <div class="empty-desc">上のフォームから学習を記録しよう！</div>
+    </div>`;
+    showMoreWrap.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = logs.map(l => {
+    const exam = getExam(l.examId);
+    const name = exam ? `${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)}` : '（削除済みの試験）';
+    const color = exam?.color || 'var(--sub)';
+    const logId = l.id ? escapeHtml(l.id) : '';
+    return `
+    <div class="history-item" data-id="${logId}">
+      <div class="hist-main">
+        <div class="hist-cert" style="color:${color}">${name}</div>
+        <div class="hist-note">${escapeHtml(l.note || '—')} · ${escapeHtml(l.date)}</div>
+      </div>
+      <div>
+        <div class="hist-hours">${escapeHtml(String(l.hours))}<span class="hist-hours-unit">h</span></div>
+      </div>
+      ${logId ? `<button class="hist-delete" data-delete-id="${logId}" aria-label="この記録を削除">✕</button>` : ''}
+    </div>`;
+  }).join('');
+
+  showMoreWrap.innerHTML = hasMore
+    ? `<button class="btn-show-more tappable" onclick="showMoreHistory()">さらに表示（残り ${allLogs.length - showCount}件）</button>`
+    : '';
+}
+
+function showMoreHistory() {
+  state.ui.historyPage = (state.ui.historyPage || 1) + 1;
+  renderHistory();
+}
+
+// ─── Render: Settings（試験一覧） ────────────────────────────
+function renderSettings() {
+  const el = document.getElementById('examList');
+  if (!state.exams.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:24px;"><div class="empty-icon">📋</div><div class="empty-title">試験が未登録です</div><div class="empty-desc">下のフォームから追加してください</div></div>`;
+    return;
+  }
+  el.innerHTML = state.exams.map((exam, idx) => {
+    const logCount = state.logs.filter(l => l.examId === exam.id).length;
+    const canDelete = state.exams.length > 1; // 最後の1件は削除不可
+    return `
+    <div class="exam-item">
+      <div class="exam-item-header">
+        <div class="exam-item-name">
+          <div class="exam-item-emoji" style="background:${exam.color}22;">${escapeHtml(exam.emoji)}</div>
+          <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;">
+            <span>${escapeHtml(exam.name)}</span>
+            ${renderCertBadge(getExamCertEntry(exam), {showEmpty: true})}
+          </div>
+        </div>
+        <button class="btn-exam-delete tappable"
+          onclick="confirmDeleteExam('${escapeHtml(exam.id)}')"
+          ${canDelete ? '' : 'disabled'}
+          title="${canDelete ? '削除' : '最後の試験は削除できません'}">
+          削除
+        </button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">資格DB連携</div>
+          <div class="settings-sub">手当額・期限を自動表示</div>
+        </div>
+        <button class="btn-link-add tappable" style="height:34px;font-size:12px;" onclick="openCertPicker('${escapeHtml(exam.id)}')">
+          ${exam.certDbId ? '変更' : '紐付ける'}
+        </button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">試験日</div></div>
+        <input class="settings-input" type="date" id="exam_date_${escapeHtml(exam.id)}"
+          value="${escapeHtml(exam.examDate)}"
+          onchange="updateExamField('${escapeHtml(exam.id)}','examDate',this.value)">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">目標時間</div><div class="settings-sub">合格に必要な総時間</div></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input class="settings-input" type="number" min="10" max="2000"
+            id="exam_target_${escapeHtml(exam.id)}"
+            value="${exam.targetHours}" style="width:80px;" inputmode="numeric"
+            onchange="updateExamField('${escapeHtml(exam.id)}','targetHours',+this.value)">
+          <span style="font-size:13px;color:var(--sub)">時間</span>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">週間目標</div><div class="settings-sub">週に何時間勉強するか</div></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input class="settings-input" type="number" min="1" max="60"
+            id="exam_weekly_${escapeHtml(exam.id)}"
+            value="${exam.weeklyHours}" style="width:80px;" inputmode="numeric"
+            onchange="updateExamField('${escapeHtml(exam.id)}','weeklyHours',+this.value)">
+          <span style="font-size:13px;color:var(--sub)">時間</span>
+        </div>
+      </div>
+      ${logCount > 0 ? `<div style="padding:8px 16px 12px;font-size:12px;color:var(--sub);">📝 学習記録 ${logCount}件</div>` : ''}
+      <div class="link-section-head">
+        <span class="link-section-title">🔗 問題集・参考サイト</span>
+        <span style="font-size:11px;color:var(--sub);">${(exam.links||[]).length} / ${MAX_LINKS}件</span>
+      </div>
+      <div class="link-list" id="linkList_${escapeHtml(exam.id)}">
+        ${(exam.links||[]).map(l => `
+        <div class="link-item">
+          <div class="link-item-info">
+            <div class="link-item-label">${escapeHtml(l.label)}</div>
+            <div class="link-item-url">${escapeHtml(l.url)}</div>
+          </div>
+          <button class="btn-link-delete tappable"
+            data-exam-id="${escapeHtml(exam.id)}"
+            data-link-id="${escapeHtml(l.id)}"
+            aria-label="リンクを削除">✕</button>
+        </div>`).join('')}
+        ${!(exam.links||[]).length ? `<div style="font-size:12px;color:var(--sub);padding:4px 0 8px;">まだリンクがありません</div>` : ''}
+      </div>
+      <div class="add-link-row">
+        <div class="input-group" style="flex:1.2;">
+          <label class="input-label-text" style="font-size:11px;" for="newLinkLabel_${escapeHtml(exam.id)}">名前</label>
+          <input class="input-field" type="text" id="newLinkLabel_${escapeHtml(exam.id)}"
+            placeholder="過去問道場" maxlength="20">
+        </div>
+        <div class="input-group" style="flex:2;">
+          <label class="input-label-text" style="font-size:11px;" for="newLinkUrl_${escapeHtml(exam.id)}">URL（https://）</label>
+          <input class="input-field" type="url" id="newLinkUrl_${escapeHtml(exam.id)}"
+            placeholder="https://...">
+        </div>
+        <button class="btn-link-add tappable"
+          onclick="addLink('${escapeHtml(exam.id)}')">追加</button>
+      </div>
+    </div>`;
+  }).join('');
+
+}
+
+// ─── 資格DB連携：ヘルパー ─────────────────────────────────
+function getExamCertEntry(exam) {
+  if (!exam || !exam.certDbId) return null;
+  return CERT_DB.find(c => c.dbId === exam.certDbId) || null;
+}
+
+function renderCertBadge(entry, opts = {}) {
+  if (!entry) {
+    if (opts.showEmpty) {
+      return `<span class="cert-badge no-cert" title="資格DB未連携">手当未設定</span>`;
+    }
+    return '';
+  }
+  const flame = entry.program === 'ms' ? '<span class="cert-badge-flame">🔥</span>' : '';
+  const cls = entry.program === 'snow' ? 'snow' :
+              entry.program === 'ms'   ? 'ms'   :
+              `${entry.program}-${entry.group}`;
+  const p = getPayment(entry);
+  // 月額／一時金をアイコンで明示
+  const typeIcon = (p.monthly > 0) ? '🔄' : (p.onetime > 0) ? '🎁' : '';
+  const titleText = `${escapeHtml(programLabel(entry.program))} / ${escapeHtml(groupLabel(entry.program, entry.group))} / ${p.monthly > 0 ? '月額支給' : p.onetime > 0 ? '合格一時金' : '受験料のみ'}`;
+  return `<span class="cert-badge ${cls}" title="${titleText}">${flame}${typeIcon} ${escapeHtml(p.label)}</span>`;
+}
+
+function fmtMoney(n) {
+  return '¥' + Number(n).toLocaleString('ja-JP');
+}
+
+// ─── Render: 期待リターンセクション（ホーム） ─────────────
+function renderReturnSection() {
+  const wrap = document.getElementById('returnSection');
+  if (!wrap) return;
+  const exam = getHeroExam();
+  if (!exam) { wrap.innerHTML = ''; return; }
+  const entry = getExamCertEntry(exam);
+  if (!entry) {
+    wrap.innerHTML = `
+      <div class="return-card">
+        <div class="return-title">💰 合格時のリターン</div>
+        <div class="return-no-data">
+          この試験は資格DBに紐付いていません<br>
+          <button class="tappable" onclick="openCertPicker('${escapeHtml(exam.id)}')">手当情報を選んで紐付ける</button>
+        </div>
+      </div>`;
+    return;
+  }
+  const ret = calcReturn(entry);
+  const alerts = checkAlerts(entry);
+
+  let body = '';
+  if (ret.type === 'onetime') {
+    body = `
+      <div class="return-rows">
+        <div class="return-row big">
+          <span class="label">合格一時金</span>
+          <span class="val">${fmtMoney(ret.onetime)}</span>
+        </div>
+        <div class="return-row">
+          <span class="label">受験料</span>
+          <span class="val">${escapeHtml(ret.examFee)} ✓</span>
+        </div>
+      </div>`;
+  } else if (ret.type === 'monthly') {
+    body = `
+      <div class="return-rows">
+        <div class="return-row big">
+          <span class="label">月額手当</span>
+          <span class="val">${fmtMoney(ret.monthly)}</span>
+        </div>
+        <div class="return-row">
+          <span class="label">年額換算</span>
+          <span class="val">${fmtMoney(ret.yearly)}</span>
+        </div>
+        <div class="return-row">
+          <span class="label">${ret.noLimit ? '累計（合格後5年期限 撤廃中🔥）' : '累計（合格日から5年間）'}</span>
+          <span class="val">${fmtMoney(ret.fiveYear)}${ret.noLimit ? '+' : ''}</span>
+        </div>
+        <div class="return-row">
+          <span class="label">受験料</span>
+          <span class="val">${escapeHtml(ret.examFee)} ✓</span>
+        </div>
+      </div>
+      ${ret.noLimit ? '<div class="return-note">🔥 MS特別措置の対象期間中は、通常「合格日から5年間」の支給期限が撤廃されています。</div>' : ''}` ;
+  } else {
+    // D群：受験料のみ（金銭手当なし）
+    body = `
+      <div class="return-rows">
+        <div class="return-row big">
+          <span class="label">受験料</span>
+          <span class="val">会社支給 ✓</span>
+        </div>
+      </div>
+      <div class="return-note">合格一時金・月額手当はありませんが、受験料は会社が負担します。</div>`;
+  }
+
+  // アラート表示
+  let alertHtml = '';
+  if (alerts.length) {
+    const main = alerts.find(a => a.urgency === 'high') || alerts[0];
+    alertHtml = `<div class="return-note alert">⚠️ ${escapeHtml(main.message)}</div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="return-card has-data">
+      <div class="return-title">💰 合格時のリターン ${renderCertBadge(entry)}</div>
+      ${body}
+      ${alertHtml}
+    </div>`;
+}
+
+// ─── Render: 期限アラートバナー（ホーム） ─────────────────
+function renderAlertBanners() {
+  const wrap = document.getElementById('alertBanners');
+  if (!wrap) return;
+  // 紐付け済みの試験すべてのアラートを集計
+  const items = [];
+  state.exams.forEach(ex => {
+    const entry = getExamCertEntry(ex);
+    if (!entry) return;
+    const alerts = checkAlerts(entry);
+    alerts.forEach(a => items.push({ ex, entry, alert: a }));
+  });
+  // 高→中→低の順
+  const order = { high: 0, mid: 1, low: 2, expired: 3 };
+  items.sort((a, b) => (order[a.alert.urgency] ?? 9) - (order[b.alert.urgency] ?? 9));
+
+  if (!items.length) { wrap.innerHTML = ''; return; }
+
+  // 最大2件まで表示
+  wrap.innerHTML = items.slice(0, 2).map(it => `
+    <div class="alert-banner ${escapeHtml(it.alert.urgency === 'high' ? 'high' : it.alert.urgency === 'mid' ? 'mid' : 'low')}">
+      <span class="alert-banner-icon">⚠️</span>
+      <div><strong>${escapeHtml(it.ex.name)}</strong>：${escapeHtml(it.alert.message)}</div>
+    </div>
+  `).join('');
+}
+
+// ─── 新規試験追加用 DBピッカー ─────────────────────────────
+let _newExamCertDbId = null;
+
+function renderNewExamDbBadge() {
+  const badge = document.getElementById('newExamDbBadge');
+  if (!badge) return;
+  if (_newExamCertDbId) {
+    const entry = CERT_DB.find(c => c.dbId === _newExamCertDbId);
+    const p = entry ? getPayment(entry) : null;
+    badge.textContent = entry
+      ? `✓ ${entry.name}${p?.label ? '　' + p.label : ''}`
+      : '選択済み';
+    badge.classList.remove('empty');
+  } else {
+    badge.textContent = '資格DBから選ぶと手当が自動表示されます';
+    badge.classList.add('empty');
+  }
+}
+
+function openNewExamPicker() {
+  if (document.querySelector('.modal-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-sheet tall" onclick="event.stopPropagation()">
+      <div class="modal-title">資格DBから選択</div>
+      <div class="modal-desc">選んだ資格の名前と手当情報が自動入力されます。</div>
+      <input class="input-field" type="search" id="newExamPickerSearch"
+        placeholder="検索（例：基本情報、AZ-900）" style="margin-bottom:12px;" autocomplete="off">
+      <div class="cert-pick-list" id="newExamPickerList"></div>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeModal);
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const input = document.getElementById('newExamPickerSearch');
+  renderNewExamPickerList('');
+  input.addEventListener('input', () => renderNewExamPickerList(input.value));
+  setTimeout(() => input.focus(), 100);
+}
+
+function renderNewExamPickerList(q) {
+  const results = searchCertDb(q).slice(0, 50);
+  const list = document.getElementById('newExamPickerList');
+  if (!list) return;
+  if (!list._bound) {
+    list._bound = true;
+    list.addEventListener('click', e => {
+      const el = e.target.closest('[data-new-pick]');
+      if (!el) return;
+      const dbId = el.dataset.newPick;
+      if (dbId === '__none__') {
+        _newExamCertDbId = null;
+        renderNewExamDbBadge();
+        closeModal();
+        return;
+      }
+      const entry = CERT_DB.find(c => c.dbId === dbId);
+      if (!entry) return;
+      _newExamCertDbId = dbId;
+
+      renderNewExamDbBadge();
+      closeModal();
+      showToast(`✓ 「${entry.name}」を選択しました`);
+    });
+  }
+  let html = `<div class="cert-pick-item none" data-new-pick="__none__">
+    <span class="cert-pick-name">選択を解除</span>
+  </div>`;
+  if (!results.length) {
+    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格が見つかりません</div>`;
+  } else {
+    html += results.map(entry => `
+      <div class="cert-pick-item" data-new-pick="${escapeHtml(entry.dbId)}">
+        <span class="cert-pick-name">${escapeHtml(entry.name)}${entry.code ? ' (' + escapeHtml(entry.code) + ')' : ''}</span>
+        ${renderCertBadge(entry)}
+      </div>`).join('');
+  }
+  list.innerHTML = html;
+}
+
+// ─── 資格ピッカー（モーダル） ─────────────────────────────
+let _pickerForExamId = null;
+function openCertPicker(examId) {
+  if (document.querySelector('.modal-overlay')) return;
+  _pickerForExamId = examId;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-sheet tall" onclick="event.stopPropagation()">
+      <div class="modal-title">資格DBから選択</div>
+      <div class="modal-desc">この試験を資格データベースに紐付けると、手当額・期限などが自動表示されます。</div>
+      <input class="input-field" type="search" id="pickerSearch" placeholder="検索（例：基本情報、AZ-400）" style="margin-bottom:12px;" autocomplete="off">
+      <div class="cert-pick-list" id="pickerList"></div>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeModal);
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const input = document.getElementById('pickerSearch');
+  input.addEventListener('input', renderPickerList);
+  renderPickerList();
+  setTimeout(() => input.focus(), 100);
+}
+function renderPickerList() {
+  const q = document.getElementById('pickerSearch')?.value || '';
+  const results = searchCertDb(q).slice(0, 50);
+  const list = document.getElementById('pickerList');
+  if (!list) return;
+  // イベント委譲：初回のみバインド（innerHTML書き換えのたびに付け直さない）
+  if (!list._bound) {
+    list._bound = true;
+    list.addEventListener('click', e => {
+      const el = e.target.closest('[data-pick]');
+      if (el) applyCertPick(el.dataset.pick);
+    });
+  }
+  let html = `<div class="cert-pick-item none" data-pick="__none__">
+    <span class="cert-pick-name">紐付けを解除</span>
+  </div>`;
+  if (!results.length) {
+    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格が見つかりません</div>`;
+  } else {
+    html += results.map(c => `
+      <div class="cert-pick-item" data-pick="${escapeHtml(c.dbId)}">
+        <span class="cert-pick-name">${escapeHtml(c.name)}${c.code ? ' (' + escapeHtml(c.code) + ')' : ''}</span>
+        ${renderCertBadge(c)}
+      </div>`).join('');
+  }
+  list.innerHTML = html;
+}
+function applyCertPick(dbId) {
+  const exam = getExam(_pickerForExamId);
+  if (!exam) { closeModal(); return; }
+  exam.certDbId = (dbId === '__none__') ? null : dbId;
+  saveState();
+  closeModal();
+  haptic();
+  render();
+  if (exam.certDbId) {
+    const entry = CERT_DB.find(c => c.dbId === exam.certDbId);
+    showToast(`✅ 「${entry?.name || ''}」を紐付けました`);
+  } else {
+    showToast('✅ 紐付けを解除しました');
+  }
+}
+
+// ─── Render: カタログページ ──────────────────────────────
+let _catalogState = { q: '', program: '', group: '' };
+function renderCatalogFilters() {
+  const programs = [
+    { id: '',        label: 'すべて' },
+    { id: 'special', label: '専門技能手当' },
+    { id: 'ms',      label: 'MS特別措置' },
+    { id: 'snow',    label: 'ServiceNow' },
+    { id: 'self',    label: '自己啓発支援金' },
+  ];
+  document.getElementById('catalogProgramFilters').innerHTML = programs.map(p =>
+    `<button class="filter-chip tappable${_catalogState.program === p.id ? ' active' : ''}" data-prog="${escapeHtml(p.id)}">${escapeHtml(p.label)}</button>`
+  ).join('');
+
+  // 区分フィルタ（program に応じて変化）
+  let groups = [];
+  if (_catalogState.program === 'special' || _catalogState.program === 'ms') {
+    groups = [
+      { id: '', label: '全区分' },
+      { id: '1', label: '1群（月3万）' },
+      { id: '2', label: '2群（月2万）' },
+      { id: '3', label: '3群（月1万）' },
+    ];
+  } else if (_catalogState.program === 'self') {
+    groups = [
+      { id: '', label: '全区分' },
+      { id: 'A', label: 'A群（5万）' },
+      { id: 'B', label: 'B群（3万）' },
+      { id: 'C', label: 'C群（1万）' },
+      { id: 'D', label: 'D群（受験料）' },
+    ];
+  }
+  document.getElementById('catalogGroupFilters').innerHTML = groups.map(g =>
+    `<button class="filter-chip tappable${_catalogState.group === g.id ? ' active' : ''}" data-grp="${escapeHtml(g.id)}">${escapeHtml(g.label)}</button>`
+  ).join('');
+}
+function renderCatalogList() {
+  const results = searchCertDb(_catalogState.q, {
+    program: _catalogState.program || undefined,
+    group:   _catalogState.group   || undefined,
+  });
+  document.getElementById('catalogResultCount').innerHTML = `<strong>${results.length}</strong> 件の資格`;
+
+  const list = document.getElementById('catalogList');
+  if (!results.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">該当する資格がありません</div>
+        <div class="empty-desc">検索ワードやフィルタを変えてみてください</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML = results.slice(0, 200).map(c => {
+    const ret = calcReturn(c);
+    const isOwned = state.owned.some(o => o.dbId === c.dbId);
+    const isLinked = state.exams.some(e => e.certDbId === c.dbId);
+    return `
+    <div class="catalog-item">
+      <div class="catalog-item-head">
+        <div class="catalog-item-name">${escapeHtml(c.name)}${c.code ? ' <span style="color:var(--sub);font-weight:600;">(' + escapeHtml(c.code) + ')</span>' : ''}</div>
+        ${renderCertBadge(c)}
+      </div>
+      <div class="catalog-item-meta">
+        <span class="program-tag">${escapeHtml(programLabel(c.program))}</span>
+        <span>${escapeHtml(c.series)}</span>
+        ${c.retiredAt ? `<span style="color:var(--red);font-weight:700;">廃止予定: ${escapeHtml(c.retiredAt)}</span>` : ''}
+      </div>
+      <div class="catalog-item-actions">
+        <button class="catalog-action-btn tappable" data-cat-add="${escapeHtml(c.dbId)}" ${isLinked ? 'disabled style="opacity:0.5"' : ''}>
+          ${isLinked ? '✓ 学習中' : '＋ 学習中の試験に追加'}
+        </button>
+        <button class="catalog-action-btn secondary tappable" data-cat-own="${escapeHtml(c.dbId)}" ${isOwned ? 'disabled style="opacity:0.5"' : ''}>
+          ${isOwned ? '✓ 保有済' : '取得済として登録'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderCatalog() {
+  renderCatalogFilters();
+  renderCatalogList();
+}
+
+// カタログ：イベント
+function bindCatalogEvents() {
+  const input = document.getElementById('catalogSearchInput');
+  if (input && !input._bound) {
+    input._bound = true;
+    let timer = null;
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        _catalogState.q = input.value;
+        renderCatalogList();
+      }, 200);
+    });
+  }
+  // 委譲：programフィルタ
+  const pf = document.getElementById('catalogProgramFilters');
+  if (pf && !pf._bound) {
+    pf._bound = true;
+    pf.addEventListener('click', e => {
+      const btn = e.target.closest('[data-prog]');
+      if (!btn) return;
+      _catalogState.program = btn.dataset.prog;
+      _catalogState.group = ''; // program切替時に区分リセット
+      renderCatalog();
+    });
+  }
+  // 委譲：groupフィルタ
+  const gf = document.getElementById('catalogGroupFilters');
+  if (gf && !gf._bound) {
+    gf._bound = true;
+    gf.addEventListener('click', e => {
+      const btn = e.target.closest('[data-grp]');
+      if (!btn) return;
+      _catalogState.group = btn.dataset.grp;
+      renderCatalogList();
+      renderCatalogFilters();
+    });
+  }
+  // 委譲：カタログアイテムのアクション
+  const cl = document.getElementById('catalogList');
+  if (cl && !cl._bound) {
+    cl._bound = true;
+    cl.addEventListener('click', e => {
+      const addBtn = e.target.closest('[data-cat-add]');
+      const ownBtn = e.target.closest('[data-cat-own]');
+      if (addBtn && !addBtn.disabled) {
+        addExamFromCatalog(addBtn.dataset.catAdd);
+      } else if (ownBtn && !ownBtn.disabled) {
+        addOwnedFromCatalog(ownBtn.dataset.catOwn);
+      }
+    });
+  }
+}
+
+// カタログ→学習中の試験に追加
+function addExamFromCatalog(dbId) {
+  if (state.exams.length >= MAX_EXAMS) {
+    showToast(`⚠️ 試験は最大${MAX_EXAMS}件まで登録できます`); return;
+  }
+  const entry = CERT_DB.find(c => c.dbId === dbId);
+  if (!entry) return;
+  const colorIndex = state.exams.length % EXAM_COLORS.length;
+  // 試験日：90日後（仮）
+  const dd = new Date(); dd.setDate(dd.getDate() + 90);
+  const exam = {
+    id: newId(),
+    name: entry.name,
+    emoji: '📘',
+    examDate: dd.toISOString().split('T')[0],
+    weeklyHours: 5,
+    targetHours: 100,
+    color: EXAM_COLORS[colorIndex],
+    certDbId: dbId,
+    links: []
+  };
+  state.exams.push(exam);
+  state.ui.heroExamId = exam.id;
+  saveState();
+  haptic('heavy');
+  showToast(`✅ 「${entry.name}」を追加しました（試験日・目標は設定で調整してください）`);
+  showPage('settings');
+}
+
+// カタログ→保有資格に追加
+function addOwnedFromCatalog(dbId) {
+  if (state.owned.some(o => o.dbId === dbId)) return;
+  const entry = CERT_DB.find(c => c.dbId === dbId);
+  if (!entry) return;
+  state.owned.push({
+    id: newId(),
+    dbId,
+    acquiredAt: new Date().toISOString().split('T')[0],
+  });
+  saveState();
+  haptic();
+  renderCatalogList();
+  showToast(`🏆 「${entry.name}」を保有資格に追加しました`);
+}
+
+// ─── Render: 保有資格ページ ──────────────────────────────
+function calcOwnedSummary() {
+  // 月額系（system／ms）と一時金系（self／snow）を集計
+  // 同系列内の重複支給ルールは厳密判定が複雑なので、UIでは概算として全件加算した上で「上限5万円」を併記
+  let monthly = 0, onetime = 0;
+  state.owned.forEach(o => {
+    const e = CERT_DB.find(c => c.dbId === o.dbId);
+    if (!e) return;
+    const p = getPayment(e);
+    monthly += p.monthly || 0;
+    onetime += p.onetime || 0;
+  });
+  return { monthly, onetime };
+}
+
+function renderOwnedSummary() {
+  const wrap = document.getElementById('ownedSummary');
+  if (!wrap) return;
+  const sum = calcOwnedSummary();
+  const cap = 50000;
+  const capped = Math.min(sum.monthly, cap);
+  const capPct = Math.min(100, Math.round(sum.monthly / cap * 100));
+  const overCap = sum.monthly > cap;
+
+  wrap.innerHTML = `
+    <div class="owned-summary">
+      <div class="owned-summary-title">🏆 累計手当（月額）</div>
+      <div class="owned-summary-val">${fmtMoney(capped)}<span class="unit">/月</span></div>
+      <div class="owned-summary-sub">
+        <span>${overCap ? `※ 上限5万円のため${fmtMoney(sum.monthly - cap)}は支給対象外` : `年額換算：${fmtMoney(capped * 12)}`}</span>
+      </div>
+      <div class="owned-cap-bar">
+        <div class="owned-cap-fill" style="width:${capPct}%"></div>
+      </div>
+      <div class="owned-cap-label">月額上限 ${fmtMoney(cap)} まで残り ${fmtMoney(Math.max(0, cap - sum.monthly))}</div>
+    </div>
+    ${sum.onetime > 0 ? `
+    <div class="return-card">
+      <div class="return-title">💎 累計一時金（過去取得分）</div>
+      <div class="return-rows">
+        <div class="return-row big">
+          <span class="label">合計</span>
+          <span class="val">${fmtMoney(sum.onetime)}</span>
+        </div>
+      </div>
+    </div>` : ''}
+  `;
+}
+
+function renderOwnedList() {
+  const wrap = document.getElementById('ownedList');
+  if (!wrap) return;
+  if (!state.owned.length) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-title">保有資格が未登録です</div>
+        <div class="empty-desc">下のボタンからカタログを開き、取得済みの資格を登録しましょう</div>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="owned-list">` + state.owned.map(o => {
+    const entry = CERT_DB.find(c => c.dbId === o.dbId);
+    if (!entry) {
+      return `<div class="owned-item">
+        <div class="owned-item-info">
+          <div class="owned-item-name">（不明な資格）</div>
+          <div class="owned-item-meta">DBから削除された可能性があります</div>
+        </div>
+        <button class="owned-delete tappable" data-owned-del="${escapeHtml(o.id)}" aria-label="削除">✕</button>
+      </div>`;
+    }
+    const p = getPayment(entry);
+    const amt = p.monthly > 0 ? `<span class="v">${fmtMoney(p.monthly)}</span><span class="u">/月</span>` :
+                p.onetime > 0 ? `<span class="v">${fmtMoney(p.onetime)}</span><span class="u">一時金</span>` :
+                                `<span class="u">手当なし</span>`;
+    return `<div class="owned-item">
+      <div class="owned-item-info">
+        <div class="owned-item-name">${escapeHtml(entry.name)}</div>
+        <div class="owned-item-meta">${escapeHtml(programLabel(entry.program))} ・ ${escapeHtml(groupLabel(entry.program, entry.group))} ・ 取得 ${escapeHtml(o.acquiredAt || '—')}</div>
+      </div>
+      <div class="owned-item-amount">${amt}</div>
+      <button class="owned-delete tappable" data-owned-del="${escapeHtml(o.id)}" aria-label="削除">✕</button>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function renderOwned() {
+  renderOwnedSummary();
+  renderOwnedList();
+  // 委譲：削除ボタン
+  const list = document.getElementById('ownedList');
+  if (list && !list._bound) {
+    list._bound = true;
+    list.addEventListener('click', e => {
+      const btn = e.target.closest('[data-owned-del]');
+      if (btn) deleteOwned(btn.dataset.ownedDel);
+    });
+  }
+}
+
+function deleteOwned(id) {
+  state.owned = state.owned.filter(o => o.id !== id);
+  saveState();
+  haptic();
+  renderOwned();
+  showToast('🗑 保有資格から削除しました');
+}
+
+// ─── Main Render ───────────────────────────────────────────
+function render() {
+  const today = new Date();
+  document.getElementById('headerDate').textContent =
+    `${today.getMonth()+1}/${today.getDate()}(${['日','月','火','水','木','金','土'][today.getDay()]})`;
+
+  if (state.ui.currentPage === 'home') {
+    renderCertTabs();
+    renderHero();
+    renderDailyBanner();
+    renderAlertBanners();
+    renderReturnSection();
+    renderMotivation();
+    renderOnboarding();
+    renderProgress();
+    renderGoals();
+  } else if (state.ui.currentPage === 'log') {
+    renderLogCertSelect();
+    renderBarChart();
+    renderHistory();
+  } else if (state.ui.currentPage === 'settings') {
+    renderSettings();
+  } else if (state.ui.currentPage === 'catalog') {
+    renderCatalog();
+    bindCatalogEvents();
+  } else if (state.ui.currentPage === 'owned') {
+    renderOwned();
+  }
+}
+
+// ─── Actions: Log ──────────────────────────────────────────
+function addLog() {
+  const examId = document.getElementById('logCert').value;
+  const hours  = parseFloat(document.getElementById('logHours').value) || 0;
+  const note   = document.getElementById('logNote').value.trim();
+  if (!examId)      { showToast('⚠️ 試験を選択してください'); return; }
+  if (hours <= 0)   { showToast('⚠️ 時間を入力してください'); return; }
+  if (hours > 12)   { showToast('⚠️ 1回あたり12時間以内で入力してください'); return; }
+
+  const today   = new Date().toISOString().split('T')[0];
+  const logDate = document.getElementById('logDate').value || today;
+
+  state.logs.push({ id: newId(), examId, hours, note, date: logDate, ts: Date.now() });
+  if (state.logs.length > MAX_LOGS) state.logs = state.logs.slice(-MAX_LOGS);
+  if (logDate === today) updateStreak();
+  state.ui.historyPage = 1;
+  saveState();
+
+  document.getElementById('logNote').value  = '';
+  document.getElementById('logHours').value = '1';
+  document.getElementById('logDate').value  = today;
+  haptic('heavy');
+  render();
+  showToast(`✅ ${hours}時間を記録しました！`);
+}
+
+// ─── Actions: Exam CRUD ────────────────────────────────────
+function addExam() {
+  const date   = document.getElementById('newExamDate').value;
+  const target = parseInt(document.getElementById('newExamTarget').value) || 0;
+  const weekly = parseInt(document.getElementById('newExamWeekly').value) || 0;
+
+  if (!_newExamCertDbId) { showToast('⚠️ 資格DBから試験を選んでください'); return; }
+  if (!date)             { showToast('⚠️ 試験日を入力してください'); return; }
+  if (target < 10)       { showToast('⚠️ 目標時間は10時間以上で入力してください'); return; }
+  if (weekly < 1)        { showToast('⚠️ 週間目標は1時間以上で入力してください'); return; }
+  if (state.exams.length >= MAX_EXAMS) { showToast(`⚠️ 試験は最大${MAX_EXAMS}件まで登録できます`); return; }
+
+  const entry = CERT_DB.find(c => c.dbId === _newExamCertDbId);
+  const name  = entry?.name || '不明な資格';
+  const emoji = entry ? (EMOJI_OPTIONS[CERT_DB.indexOf(entry) % EMOJI_OPTIONS.length]) : '📘';
+  const colorIndex = state.exams.length % EXAM_COLORS.length;
+  const exam = {
+    id: newId(), name, emoji,
+    examDate: date, weeklyHours: weekly, targetHours: target,
+    color: EXAM_COLORS[colorIndex], certDbId: _newExamCertDbId, links: []
+  };
+  state.exams.push(exam);
+  state.ui.heroExamId = exam.id;
+  saveState();
+
+  // フォームリセット
+  document.getElementById('newExamDate').value   = '';
+  document.getElementById('newExamTarget').value = '';
+  document.getElementById('newExamWeekly').value = '';
+  _newExamCertDbId = null;
+  renderNewExamDbBadge();
+
+  haptic('heavy');
+  render();
+  showToast(`✅ 「${name}」を追加しました！`);
+}
+
+function updateExamField(examId, field, value) {
+  const exam = getExam(examId);
+  if (!exam) return;
+  if (field === 'targetHours' || field === 'weeklyHours') {
+    const min = field === 'targetHours' ? 10 : 1;
+    value = Math.max(min, parseInt(value) || min);
+  }
+  exam[field] = value;
+  saveState();
+  // ホーム表示中なら即反映
+  if (state.ui.currentPage === 'home') render();
+  showToast('✅ 保存しました');
+}
+
+function confirmDeleteExam(examId) {
+  if (document.querySelector('.modal-overlay')) return;
+  const exam = getExam(examId);
+  if (!exam) return;
+  const logCount = state.logs.filter(l => l.examId === examId).length;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-title">「${escapeHtml(exam.name)}」を削除しますか？</div>
+      <div class="modal-desc">${logCount > 0
+        ? `この試験の学習記録 ${logCount}件 もあわせて削除されます。この操作は取り消せません。`
+        : 'この操作は取り消せません。'}</div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
+        <button class="modal-btn danger tappable" onclick="execDeleteExam('${escapeHtml(examId)}')">削除する</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeModal);
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function execDeleteExam(examId) {
+  const exam = getExam(examId);
+  if (!exam) { closeModal(); return; }
+  // ログも削除
+  state.logs   = state.logs.filter(l => l.examId !== examId);
+  state.exams  = state.exams.filter(e => e.id !== examId);
+  // heroが消えた場合は先頭に戻す
+  if (state.ui.heroExamId === examId) {
+    state.ui.heroExamId = state.exams[0]?.id || null;
+  }
+  saveState();
+  closeModal();
+  haptic();
+  render();
+  showToast(`🗑 「${exam.name}」を削除しました`);
+}
+
+// ─── Actions: Link CRUD ───────────────────────────────────
+function addLink(examId) {
+  const exam = getExam(examId);
+  if (!exam) return;
+  if (!exam.links) exam.links = [];
+  if (exam.links.length >= MAX_LINKS) {
+    showToast(`⚠️ リンクは最大${MAX_LINKS}件まで登録できます`); return;
+  }
+  const labelEl = document.getElementById(`newLinkLabel_${examId}`);
+  const urlEl   = document.getElementById(`newLinkUrl_${examId}`);
+  const label   = labelEl?.value.trim();
+  const url     = urlEl?.value.trim();
+
+  if (!label)        { showToast('⚠️ 名前を入力してください'); return; }
+  if (!url)          { showToast('⚠️ URLを入力してください'); return; }
+  if (!safeUrl(url)) { showToast('⚠️ URLは https:// で始まる形式で入力してください'); return; }
+
+  exam.links.push({ id: newId(), label, url: safeUrl(url) });
+  saveState();
+  if (labelEl) labelEl.value = '';
+  if (urlEl)   urlEl.value   = '';
+  haptic();
+  // 設定ページのリンクリストだけ更新（全再描画を避ける）
+  renderSettings();
+  // ホームのヒーローも即更新
+  if (state.ui.currentPage === 'home') renderHero();
+  showToast(`✅ 「${label}」を追加しました`);
+}
+
+function deleteLink(examId, linkId) {
+  const exam = getExam(examId);
+  if (!exam || !exam.links) return;
+  const link = exam.links.find(l => l.id === linkId);
+  if (!link) return;
+  exam.links = exam.links.filter(l => l.id !== linkId);
+  saveState();
+  haptic();
+  renderSettings();
+  if (state.ui.currentPage === 'home') renderHero();
+  showToast('🗑 リンクを削除しました');
+}
+
+// ─── Actions: Log delete ───────────────────────────────────
+function deleteLog(id) {
+  if (document.querySelector('.modal-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-title">記録を削除しますか？</div>
+      <div class="modal-desc">この操作は取り消せません。</div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
+        <button class="modal-btn danger tappable" onclick="execDeleteLog('${escapeHtml(id)}')">削除する</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeModal);
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function execDeleteLog(id) {
+  state.logs = state.logs.filter(l => l.id !== id);
+  saveState();
+  closeModal();
+  haptic();
+  render();
+  showToast('🗑 記録を削除しました');
+}
+
+function closeModal() {
+  document.querySelector('.modal-overlay')?.remove();
+  document.body.style.overflow = '';
+}
+
+// ─── Navigation ────────────────────────────────────────────
+function showPage(page) {
+  state.ui.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    const isActive = b.dataset.page === page;
+    b.classList.toggle('active', isActive);
+    isActive ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current');
+  });
+  render();
+}
+
+// ─── Toast ─────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─── Init ──────────────────────────────────────────────────
+// イベント委譲：ログ削除
+document.getElementById('historyList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-delete-id]');
+  if (btn) deleteLog(btn.dataset.deleteId);
+});
+
+// イベント委譲：リンク削除
+document.getElementById('examList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-link-id]');
+  if (btn) deleteLink(btn.dataset.examId, btn.dataset.linkId);
+});
+
+// 日付フィールド初期値
+document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+
+updateStreak();
+showPage(state.ui.currentPage || 'home');
+</script>
+</body>
+</html>
