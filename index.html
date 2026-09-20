@@ -326,7 +326,7 @@ main {
   position: relative;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-.hist-main { flex: 1; padding-right: 32px; }
+.hist-main { flex: 1; padding-right: 72px; }
 .hist-cert { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
 .hist-note { font-size: 12px; color: var(--sub); }
 .hist-hours {
@@ -334,15 +334,19 @@ main {
   font-size: 20px; font-weight: 900; color: var(--orange); flex-shrink: 0;
 }
 .hist-hours-unit { font-size: 11px; color: var(--sub); font-family: inherit; }
-.hist-delete {
+.hist-actions {
   position: absolute; top: 0; right: 0;
-  background: none; border: none; font-size: 16px;
+  display: flex; align-items: center;
+}
+.hist-edit, .hist-delete {
+  background: none; border: none; font-size: 15px;
   color: var(--sub); padding: 0;
   border-radius: 6px; opacity: 0.45; line-height: 1;
   transition: opacity var(--transition), background var(--transition);
-  min-width: 44px; min-height: 44px;
+  min-width: 36px; min-height: 44px;
   display: flex; align-items: center; justify-content: center;
 }
+.hist-edit:active { opacity: 1; background: var(--orange-light); color: var(--orange); }
 .hist-delete:active { opacity: 1; background: var(--red-light); color: var(--red); }
 .hist-total {
   font-size: 12px; color: var(--sub); font-weight: 600;
@@ -440,19 +444,6 @@ main {
   border-radius: var(--radius-m); padding: 20px 16px;
   margin: 0 16px 12px;
 }
-.add-exam-title {
-  font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--orange);
-}
-.emoji-picker {
-  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
-}
-.emoji-opt {
-  width: 40px; height: 40px; border-radius: 10px;
-  border: 2px solid var(--border); background: var(--bg);
-  font-size: 20px; display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition); cursor: pointer;
-}
-.emoji-opt.selected { border-color: var(--orange); background: var(--orange-light); }
 .btn-add-exam {
   width: 100%; height: 46px;
   background: var(--orange-light); color: var(--orange);
@@ -584,6 +575,13 @@ nav {
   transition: transform 0.3s ease;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
+.toast { display: flex; align-items: center; gap: 10px; }
+.toast-undo-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.4);
+  color: #fff; font-weight: 800; font-size: 12px;
+  padding: 4px 10px; border-radius: 20px; flex-shrink: 0;
+}
+.toast-undo-btn:active { background: rgba(255,255,255,0.2); }
 
 /* ─── 資格バッジ（手当額表示） ─── */
 .cert-badge {
@@ -851,43 +849,54 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZmOGM0MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiYmYyNCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjciIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iNyIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjk1Ii8+PHJlY3QgeD0iMTEiIHk9IjkiIHdpZHRoPSIxMyIgaGVpZ2h0PSIxNCIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjg1Ii8+PC9zdmc+">
 <!-- Firebase SDK -->
 <script type="module" id="firebase-init">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+try {
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+  const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB5XG8wYcRo5u48f3U1cyeZwcfYuiIF9Sc",
-  authDomain: "cert-dashboard-36f8b.firebaseapp.com",
-  projectId: "cert-dashboard-36f8b",
-  storageBucket: "cert-dashboard-36f8b.firebasestorage.app",
-  messagingSenderId: "537612897899",
-  appId: "1:537612897899:web:8f12573d3ca5f15fd7eb2e"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyB5XG8wYcRo5u48f3U1cyeZwcfYuiIF9Sc",
+    authDomain: "cert-dashboard-36f8b.firebaseapp.com",
+    projectId: "cert-dashboard-36f8b",
+    storageBucket: "cert-dashboard-36f8b.firebasestorage.app",
+    messagingSenderId: "537612897899",
+    appId: "1:537612897899:web:8f12573d3ca5f15fd7eb2e"
+  };
 
-const _app = initializeApp(firebaseConfig);
-const _db  = getFirestore(_app);
-const _ref = doc(_db, 'users', 'default');
+  const _app = initializeApp(firebaseConfig);
+  const _db  = getFirestore(_app);
+  const _ref = doc(_db, 'users', 'default');
 
-// Firestoreから読み込み → グローバルに公開
-window._fsLoad = async () => {
-  try {
-    const snap = await getDoc(_ref);
-    return snap.exists() ? snap.data().state : null;
-  } catch(e) {
-    console.warn('Firestore load error:', e);
-    return null;
-  }
-};
+  // Firestoreから読み込み → グローバルに公開
+  window._fsLoad = async () => {
+    try {
+      const snap = await getDoc(_ref);
+      return snap.exists() ? snap.data().state : null;
+    } catch(e) {
+      console.warn('Firestore load error:', e);
+      return null;
+    }
+  };
 
-// Firestoreに保存
-window._fsSave = async (stateJson) => {
-  try {
-    await setDoc(_ref, { state: stateJson, updatedAt: Date.now() });
-    return true;
-  } catch(e) {
-    console.warn('Firestore save error:', e);
-    return false;
-  }
-};
+  // Firestoreに保存
+  window._fsSave = async (stateJson) => {
+    try {
+      await setDoc(_ref, { state: stateJson, updatedAt: Date.now() });
+      return true;
+    } catch(e) {
+      console.warn('Firestore save error:', e);
+      return false;
+    }
+  };
+
+  // メインスクリプト側は「固定ms待てば読み込み終わっているはず」という決め打ちの代わりに、
+  // このイベントを待ってから初回同期を始められる（回線が遅くても取りこぼさない）。
+  window.dispatchEvent(new CustomEvent('firebase-ready'));
+} catch (e) {
+  // CDNブロック・ネットワーク断などでモジュール自体の読み込みに失敗した場合も、
+  // メインスクリプトがフォールバックのタイムアウトを待たずに「オフライン」と判定できるようにする。
+  console.warn('Firebase init failed:', e);
+  window.dispatchEvent(new CustomEvent('firebase-failed'));
+}
 </script>
 </head>
 <body>
@@ -1007,6 +1016,28 @@ window._fsSave = async (stateJson) => {
         </div>
         <button class="btn-add-exam tappable" onclick="addExam()">＋ この試験を追加する</button>
       </div>
+
+      <!-- データ管理（バックアップ） -->
+      <div class="section-head" style="margin-top:4px;">
+        <span class="section-title">データ管理</span>
+      </div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">バックアップを保存</div>
+            <div class="settings-sub">記録をJSONファイルとして端末に保存します</div>
+          </div>
+          <button class="btn-db-pick tappable" type="button" onclick="exportData()">保存</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">バックアップを復元</div>
+            <div class="settings-sub">保存したJSONファイルから読み込みます</div>
+          </div>
+          <button class="btn-db-pick tappable" type="button" onclick="triggerImport()">選ぶ</button>
+        </div>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none" onchange="handleImportFile(event)">
     </div>
 
     <!-- ページ：カタログ -->
@@ -1463,26 +1494,6 @@ function searchCertDb(query, filters = {}) {
   });
 }
 
-// 系列リスト（フィルタUI用）
-function listSeries(program = null) {
-  const set = new Set();
-  CERT_DB.forEach(c => {
-    if (program && c.program !== program) return;
-    set.add(c.series);
-  });
-  return [...set].sort((a, b) => a.localeCompare(b, 'ja'));
-}
-
-// 区分リスト（フィルタUI用）
-function listGroups(program = null) {
-  const set = new Set();
-  CERT_DB.forEach(c => {
-    if (program && c.program !== program) return;
-    set.add(c.group);
-  });
-  return [...set].sort();
-}
-
 // === ここまで資格データベース ===========================
 
 function escapeHtml(str) {
@@ -1495,6 +1506,15 @@ function escapeHtml(str) {
 }
 const newId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const haptic = (type = 'light') => navigator.vibrate?.(type === 'heavy' ? 30 : 10);
+
+// 「今日」の判定に toISOString()（UTC基準）を使うと、UTCより進んだタイムゾーン
+// （日本など）では深夜〜早朝に日付が1日ズレる。ローカル日付でYYYY-MM-DD文字列を作る。
+function localDateStr(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 // ─── Constants ─────────────────────────────────────────────
 const STORAGE_KEY  = 'certdash_v5';
@@ -1523,14 +1543,14 @@ const MOTIVATION_MSGS = [
 
 // ─── State ─────────────────────────────────────────────────
 function makeDefaultExams() {
-  const d = (n) => { const dd = new Date(); dd.setDate(dd.getDate() + n); return dd.toISOString().split('T')[0]; };
+  const d = (n) => { const dd = new Date(); dd.setDate(dd.getDate() + n); return localDateStr(dd); };
   // DB上の対応資格があればIDを引く
   const findId = (name) => CERT_DB.find(c => c.name === name)?.dbId || null;
   return [
-    { id: newId(), name: '基本情報技術者試験', emoji: '📘', examDate: d(90),  weeklyHours: 10, targetHours: 200, color: EXAM_COLORS[0], certDbId: findId('基本情報技術者'), links: [
+    { id: newId(), name: '基本情報技術者試験', emoji: '📘', examDate: d(90),  weeklyHours: 10, targetHours: 200, color: EXAM_COLORS[0], certDbId: findId('基本情報技術者'), _updatedAt: Date.now(), links: [
       { id: newId(), label: '過去問道場', url: 'https://www.fe-siken.com/' },
     ]},
-    { id: newId(), name: 'AZ-900',             emoji: '☁️', examDate: d(45),  weeklyHours: 5,  targetHours: 50,  color: EXAM_COLORS[1], certDbId: findId('Microsoft 基礎Professional（AZ-900）'), links: [
+    { id: newId(), name: 'AZ-900',             emoji: '☁️', examDate: d(45),  weeklyHours: 5,  targetHours: 50,  color: EXAM_COLORS[1], certDbId: findId('Microsoft 基礎Professional（AZ-900）'), _updatedAt: Date.now(), links: [
       { id: newId(), label: 'Microsoft Learn', url: 'https://learn.microsoft.com/ja-jp/credentials/certifications/azure-fundamentals/' },
     ]},
   ];
@@ -1542,22 +1562,43 @@ function defaultState() {
     logs: [],
     owned: [],
     ui: { heroExamId: null, currentPage: 'home', historyPage: 1 },
-    streak: { count: 0, lastDate: '' }
+    streak: { count: 0, lastDate: '' },
+    // 端末間マージ用の削除履歴（tombstone）。id→削除日時(ms)
+    _deleted: { exams: {}, logs: {}, owned: {} }
   };
 }
 
 // マイグレーション処理（共通）
 function migrateState(p) {
-  if (!p.exams) p.exams = makeDefaultExams();
-  if (!p.ui) p.ui = { heroExamId: null, currentPage: 'home', historyPage: 1 };
+  if (!p || typeof p !== 'object') p = {};
+  if (!Array.isArray(p.exams) || !p.exams.length) p.exams = makeDefaultExams();
+  if (!p.ui || typeof p.ui !== 'object') p.ui = { heroExamId: null, currentPage: 'home', historyPage: 1 };
   if (!p.ui.historyPage) p.ui.historyPage = 1;
-  if (!p.streak) p.streak = { count: 0, lastDate: '' };
+  const validPages = ['home', 'log', 'catalog', 'owned', 'settings'];
+  if (!validPages.includes(p.ui.currentPage)) p.ui.currentPage = 'home';
+  if (!p.streak || typeof p.streak !== 'object') p.streak = { count: 0, lastDate: '' };
+  if (!p._deleted || typeof p._deleted !== 'object') p._deleted = { exams: {}, logs: {}, owned: {} };
+  if (!p._deleted.exams || typeof p._deleted.exams !== 'object') p._deleted.exams = {};
+  if (!p._deleted.logs  || typeof p._deleted.logs  !== 'object') p._deleted.logs  = {};
+  if (!p._deleted.owned || typeof p._deleted.owned !== 'object') p._deleted.owned = {};
   p.exams.forEach((e, i) => {
+    if (!e || typeof e !== 'object') return;
     if (!e.color) e.color = EXAM_COLORS[i % EXAM_COLORS.length];
-    if (!e.links) e.links = [];
+    if (!Array.isArray(e.links)) e.links = [];
     if (!('certDbId' in e)) e.certDbId = null;
+    if (!e._updatedAt) e._updatedAt = 0; // 旧データは「最も古い」扱いにして、以後の編集を優先させる
   });
-  if (!p.owned) p.owned = [];
+  // 壊れた要素（オブジェクトでない・idが無い）は保存前に取り除く
+  p.exams = p.exams.filter(e => e && typeof e === 'object' && e.id);
+  if (!p.exams.length) p.exams = makeDefaultExams();
+
+  if (!Array.isArray(p.owned)) p.owned = [];
+  p.owned = p.owned.filter(o => o && typeof o === 'object' && o.id);
+  p.owned.forEach(o => { if (!o._updatedAt) o._updatedAt = 0; });
+
+  if (!Array.isArray(p.logs)) p.logs = [];
+  p.logs = p.logs.filter(l => l && typeof l === 'object' && l.id);
+  p.logs.forEach(l => { if (!l._updatedAt) l._updatedAt = l.ts || 0; });
   return p;
 }
 
@@ -1571,6 +1612,28 @@ function loadState() {
 
 // Firestore保存（debounce付き）
 let _saveTimer = null;
+// 送信中に次の保存が来た場合、並行してsetDocを2本飛ばすと到着順が送信順と
+// 逆転して古いスナップショットが新しいものを上書きしてしまうことがある。
+// 送信は必ず直列化し、送信中に来た分は「もう一度、最新のstateで送り直す」だけにする。
+let _fsSaveInFlight = false;
+let _fsSavePending  = false;
+
+async function pushToFirestore() {
+  if (typeof window._fsSave !== 'function') { setSyncBadge('offline'); return; }
+  if (_fsSaveInFlight) { _fsSavePending = true; return; }
+  _fsSaveInFlight = true;
+  setSyncBadge('syncing');
+  const ok = await window._fsSave(JSON.stringify(state));
+  _fsSaveInFlight = false;
+  setSyncBadge(ok ? 'synced' : 'error');
+  if (!ok) showToast('⚠️ クラウド同期に失敗しました（ローカルには保存済み）');
+  setTimeout(() => setSyncBadge(''), 3000);
+  if (_fsSavePending) {
+    _fsSavePending = false;
+    pushToFirestore(); // 待たせていた分を、最新のstateで送り直す
+  }
+}
+
 function saveState() {
   // タイムスタンプ更新（新旧判定用）
   state._ts = Date.now();
@@ -1583,14 +1646,7 @@ function saveState() {
   // Firestoreには1.5秒debounce
   clearTimeout(_saveTimer);
   setSyncBadge('syncing');
-  _saveTimer = setTimeout(async () => {
-    if (typeof window._fsSave !== 'function') { setSyncBadge('offline'); return; }
-    const ok = await window._fsSave(JSON.stringify(state));
-    setSyncBadge(ok ? 'synced' : 'error');
-    if (!ok) showToast('⚠️ クラウド同期に失敗しました（ローカルには保存済み）');
-    // 3秒後にバッジを消す
-    setTimeout(() => setSyncBadge(''), 3000);
-  }, 1500);
+  _saveTimer = setTimeout(pushToFirestore, 1500);
 }
 
 function setSyncBadge(status) {
@@ -1605,6 +1661,84 @@ function setSyncBadge(status) {
 
 let state = loadState();
 
+// ─── 端末間マージ（IDベース・tombstone方式） ─────────────────
+// 従来はタイムスタンプが新しい方のstateを丸ごと採用していたため、
+// オフライン中に別端末で追加した記録が消えてしまうことがあった。
+// これを避けるため、exams/logs/owned は「id単位」でマージし、
+// 削除は tombstone（削除日時の記録）で表現して、どちらの操作が
+// 後から行われたかで最終結果を決める。
+
+// id削除を記録する（端末間マージ時、この削除が生き残るかどうかの判定に使う）
+function recordDeletion(kind, id) {
+  if (!state._deleted) state._deleted = { exams: {}, logs: {}, owned: {} };
+  if (!state._deleted[kind]) state._deleted[kind] = {};
+  state._deleted[kind][id] = Date.now();
+  // マージ時だけでなく、毎回の削除時にも間引いておく（オフライン長期利用でも肥大化しないように）
+  state._deleted[kind] = trimTombstones(state._deleted[kind]);
+}
+
+function mergeCollection(localArr, remoteArr, localDel, remoteDel) {
+  const del = {};
+  Object.keys(localDel || {}).forEach(id => { del[id] = localDel[id]; });
+  Object.keys(remoteDel || {}).forEach(id => { del[id] = Math.max(del[id] || 0, remoteDel[id]); });
+
+  const map = new Map();
+  const consider = (item) => {
+    if (!item || !item.id) return;
+    const prev = map.get(item.id);
+    const ts = item._updatedAt || 0;
+    if (!prev || ts >= (prev._updatedAt || 0)) map.set(item.id, item);
+  };
+  (localArr || []).forEach(consider);
+  (remoteArr || []).forEach(consider);
+
+  const items = [];
+  map.forEach((item) => {
+    const delAt = del[item.id] || 0;
+    // 削除の方が新しければ除外、編集の方が新しければ復元（＝生き残る）
+    if (delAt && delAt >= (item._updatedAt || 0)) return;
+    items.push(item);
+  });
+  return { items, deleted: del };
+}
+
+function trimTombstones(del, max = 1000) {
+  const ids = Object.keys(del);
+  if (ids.length <= max) return del;
+  const kept = {};
+  ids.sort((a, b) => del[b] - del[a]).slice(0, max).forEach(id => { kept[id] = del[id]; });
+  return kept;
+}
+
+function mergeStates(localRaw, remoteRaw) {
+  const local  = migrateState(localRaw);
+  const remote = migrateState(remoteRaw);
+
+  const examsMerge = mergeCollection(local.exams, remote.exams, local._deleted.exams, remote._deleted.exams);
+  const logsMerge  = mergeCollection(local.logs,  remote.logs,  local._deleted.logs,  remote._deleted.logs);
+  const ownedMerge = mergeCollection(local.owned, remote.owned, local._deleted.owned, remote._deleted.owned);
+
+  // 試験が1件も残らない自体は事故の可能性が高いのでデフォルトにフォールバック
+  const exams = examsMerge.items.length ? examsMerge.items : makeDefaultExams();
+
+  const merged = migrateState({
+    exams,
+    logs:  logsMerge.items,
+    owned: ownedMerge.items,
+    _deleted: {
+      exams: trimTombstones(examsMerge.deleted),
+      logs:  trimTombstones(logsMerge.deleted),
+      owned: trimTombstones(ownedMerge.deleted),
+    },
+    ui: local.ui,        // 画面表示中のタブ等、端末固有のUI状態はローカルを優先
+    streak: local.streak // 直後に recomputeStreak 相当の updateStreak() で作り直す
+  });
+  if (!merged.exams.some(e => e.id === merged.ui.heroExamId)) {
+    merged.ui.heroExamId = merged.exams[0]?.id || null;
+  }
+  return merged;
+}
+
 // ─── Firestore 初期ロード（起動時） ────────────────────────
 async function initFirestore() {
   setSyncBadge('syncing');
@@ -1612,16 +1746,22 @@ async function initFirestore() {
   try {
     const remote = await window._fsLoad();
     if (remote) {
-      const p = migrateState(JSON.parse(remote));
-      // ローカルより新しければ上書き
-      const localRaw = localStorage.getItem(STORAGE_KEY);
-      const localTs  = localRaw ? (JSON.parse(localRaw)._ts || 0) : 0;
-      const remoteTs = p._ts || 0;
-      if (remoteTs >= localTs) {
-        state = p;
-        localStorage.setItem(STORAGE_KEY, remote);
+      const remoteState = migrateState(JSON.parse(remote));
+      const hasLocalHistory = !!state._ts; // ローカルで一度でも保存済み＝編集履歴があり得る
+
+      if (!hasLocalHistory) {
+        // 初回起動（ローカルはデフォルトのデモデータのみ）→ クラウドの内容をそのまま採用
+        state = remoteState;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
         render();
         showToast('☁️ クラウドからデータを読み込みました');
+      } else {
+        // 双方に編集履歴があり得る → id単位でマージ（全消し置換を防ぐ）
+        state = mergeStates(state, remoteState);
+        updateStreak();
+        saveState(); // マージ結果をローカル保存＋クラウドへ書き戻して収束させる
+        render();
+        showToast('☁️ クラウドのデータと同期しました');
       }
     }
     setSyncBadge('synced');
@@ -1641,6 +1781,7 @@ function getHeroExam() {
 // ─── Calc Helpers ───────────────────────────────────────────
 function daysUntil(dateStr) {
   const target = new Date(dateStr);
+  if (isNaN(target.getTime())) return 0; // 不正な日付は「今日」扱いにして画面崩壊を防ぐ
   const now = new Date();
   now.setHours(0,0,0,0); target.setHours(0,0,0,0);
   return Math.round((target - now) / 86400000);
@@ -1664,7 +1805,7 @@ function getWeekDays() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    days.push(d.toISOString().split('T')[0]);
+    days.push(localDateStr(d));
   }
   return days;
 }
@@ -1683,6 +1824,7 @@ function getDayHours(examId, dateStr) {
 }
 
 function getProgress(exam) {
+  if (!(exam.targetHours > 0)) return 0;
   return Math.min(100, Math.round((getTotalHours(exam.id) / exam.targetHours) * 100));
 }
 
@@ -1696,22 +1838,28 @@ function getDailyRequired(exam) {
 }
 
 // ─── Streak ────────────────────────────────────────────────
+// ログ配列から毎回作り直す方式に変更。以前は「前回記録日+1」という
+// 積み上げ式だったため、記録の編集・削除・端末間マージの後に実態と
+// ズレる可能性があった。実際のログ日付から連続日数を数え直すことで、
+// どんな操作の後でも常に正しい値になる。
 function updateStreak() {
-  const today = new Date().toISOString().split('T')[0];
-  if (!state.logs.some(l => l.date === today)) return;
-  const last = state.streak.lastDate;
-  if (last === today) return;
-  const yesterday = (() => {
-    const d = new Date(); d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
-  })();
-  state.streak.count = (last === yesterday) ? state.streak.count + 1 : (last === '' ? 1 : 1);
-  state.streak.lastDate = today;
+  const days = new Set(state.logs.map(l => l.date));
+  const todayStr = localDateStr();
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  if (!days.has(todayStr)) cursor.setDate(cursor.getDate() - 1); // 今日はまだ未記録なら昨日を起点に
+  let count = 0;
+  while (days.has(localDateStr(cursor))) {
+    count++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  state.streak = { count, lastDate: todayStr };
 }
 
 // ─── Plan vs Actual ────────────────────────────────────────
 function getPlanVsActual(exam) {
-  const examDate = new Date(exam.examDate);
+  let examDate = new Date(exam.examDate);
+  if (isNaN(examDate.getTime())) examDate = new Date(); // 不正な日付は「今日」を仮置きして計算を破綻させない
   const totalTarget = exam.targetHours;
   const sorted = state.logs.filter(l => l.examId === exam.id).map(l => l.date).sort();
   const startDate = sorted.length ? new Date(sorted[0]) : (() => { const d = new Date(examDate); d.setDate(d.getDate() - 90); return d; })();
@@ -1732,7 +1880,6 @@ function renderCertTabs() {
   document.getElementById('certTabs').innerHTML = state.exams.map(e =>
     `<button class="cert-tab tappable${e.id === hero?.id ? ' active' : ''}"
       data-exam-id="${escapeHtml(e.id)}"
-      onclick="switchHeroExam('${escapeHtml(e.id)}')"
       aria-pressed="${e.id === hero?.id}">
       ${escapeHtml(e.emoji)} ${escapeHtml(e.name)}
     </button>`
@@ -1757,16 +1904,34 @@ function safeUrl(url) {
   } catch { return null; }
 }
 
+// Googleカレンダーの「かんたん追加」リンク（OAuth・API設定は一切不要）。
+// 開くと入力済みの状態で登録画面が新しいタブで開き、ユーザーが保存を押すだけで済む。
+function googleCalendarUrl(exam) {
+  if (!exam?.examDate) return null;
+  const start = new Date(exam.examDate);
+  if (isNaN(start.getTime())) return null;
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1); // 終日イベントの仕様上、終了日は翌日を指定する（排他的）
+  const fmt = d => localDateStr(d).replace(/-/g, '');
+  const text = encodeURIComponent(`${exam.emoji || '📘'} ${exam.name}（試験日）`);
+  const details = encodeURIComponent(`合格ナビで管理中の試験「${exam.name}」の試験日です。`);
+  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${fmt(start)}/${fmt(end)}&details=${details}`;
+}
+
 function renderHeroLinks(exam) {
-  if (!exam.links || !exam.links.length) return '';
-  const btns = exam.links.map(l => {
+  const gcalUrl = googleCalendarUrl(exam);
+  const gcalBtn = gcalUrl ? `<a class="hero-link-btn tappable" href="${escapeHtml(gcalUrl)}" target="_blank" rel="noopener noreferrer">
+      <span class="hero-link-icon">📅</span>カレンダーに追加
+    </a>` : '';
+  const customBtns = (exam.links || []).map(l => {
     const href = safeUrl(l.url);
     if (!href) return '';
     return `<a class="hero-link-btn tappable" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
       <span class="hero-link-icon">🔗</span>${escapeHtml(l.label)}
     </a>`;
   }).join('');
-  return btns ? `<div class="hero-links">${btns}</div>` : '';
+  const all = gcalBtn + customBtns;
+  return all ? `<div class="hero-links">${all}</div>` : '';
 }
 
 // ─── Render: Hero Card ─────────────────────────────────────
@@ -1984,7 +2149,7 @@ function renderGoals() {
 // ─── Render: Bar Chart ─────────────────────────────────────
 function renderBarChart() {
   const days    = getWeekDays();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDateStr();
   const labels  = ['月','火','水','木','金','土','日'];
 
   const maxH = Math.max(1, ...days.map(d =>
@@ -2065,7 +2230,11 @@ function renderHistory() {
       <div>
         <div class="hist-hours">${escapeHtml(String(l.hours))}<span class="hist-hours-unit">h</span></div>
       </div>
-      ${logId ? `<button class="hist-delete" data-delete-id="${logId}" aria-label="この記録を削除">✕</button>` : ''}
+      ${logId ? `
+      <div class="hist-actions">
+        <button class="hist-edit" data-edit-id="${logId}" aria-label="この記録を編集">✎</button>
+        <button class="hist-delete" data-delete-id="${logId}" aria-label="この記録を削除">✕</button>
+      </div>` : ''}
     </div>`;
   }).join('');
 
@@ -2100,7 +2269,7 @@ function renderSettings() {
           </div>
         </div>
         <button class="btn-exam-delete tappable"
-          onclick="confirmDeleteExam('${escapeHtml(exam.id)}')"
+          data-confirm-delete="${escapeHtml(exam.id)}"
           ${canDelete ? '' : 'disabled'}
           title="${canDelete ? '削除' : '最後の試験は削除できません'}">
           削除
@@ -2111,7 +2280,7 @@ function renderSettings() {
           <div class="settings-label">資格DB連携</div>
           <div class="settings-sub">手当額・期限を自動表示</div>
         </div>
-        <button class="btn-link-add tappable" style="height:34px;font-size:12px;" onclick="openCertPicker('${escapeHtml(exam.id)}')">
+        <button class="btn-link-add tappable" style="height:34px;font-size:12px;" data-open-picker="${escapeHtml(exam.id)}">
           ${exam.certDbId ? '変更' : '紐付ける'}
         </button>
       </div>
@@ -2119,15 +2288,24 @@ function renderSettings() {
         <div><div class="settings-label">試験日</div></div>
         <input class="settings-input" type="date" id="exam_date_${escapeHtml(exam.id)}"
           value="${escapeHtml(exam.examDate)}"
-          onchange="updateExamField('${escapeHtml(exam.id)}','examDate',this.value)">
+          data-field-exam="${escapeHtml(exam.id)}" data-field="examDate">
       </div>
+      ${(() => { const gcalUrl = googleCalendarUrl(exam); return gcalUrl ? `
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">📅 カレンダー</div>
+          <div class="settings-sub">試験日をGoogleカレンダーに追加</div>
+        </div>
+        <a class="btn-db-pick tappable" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;"
+          href="${escapeHtml(gcalUrl)}" target="_blank" rel="noopener noreferrer">追加</a>
+      </div>` : ''; })()}
       <div class="settings-row">
         <div><div class="settings-label">目標時間</div><div class="settings-sub">合格に必要な総時間</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <input class="settings-input" type="number" min="10" max="2000"
             id="exam_target_${escapeHtml(exam.id)}"
             value="${exam.targetHours}" style="width:80px;" inputmode="numeric"
-            onchange="updateExamField('${escapeHtml(exam.id)}','targetHours',+this.value)">
+            data-field-exam="${escapeHtml(exam.id)}" data-field="targetHours">
           <span style="font-size:13px;color:var(--sub)">時間</span>
         </div>
       </div>
@@ -2137,7 +2315,7 @@ function renderSettings() {
           <input class="settings-input" type="number" min="1" max="60"
             id="exam_weekly_${escapeHtml(exam.id)}"
             value="${exam.weeklyHours}" style="width:80px;" inputmode="numeric"
-            onchange="updateExamField('${escapeHtml(exam.id)}','weeklyHours',+this.value)">
+            data-field-exam="${escapeHtml(exam.id)}" data-field="weeklyHours">
           <span style="font-size:13px;color:var(--sub)">時間</span>
         </div>
       </div>
@@ -2172,7 +2350,7 @@ function renderSettings() {
             placeholder="https://...">
         </div>
         <button class="btn-link-add tappable"
-          onclick="addLink('${escapeHtml(exam.id)}')">追加</button>
+          data-add-link="${escapeHtml(exam.id)}">追加</button>
       </div>
     </div>`;
   }).join('');
@@ -2220,7 +2398,7 @@ function renderReturnSection() {
         <div class="return-title">💰 合格時のリターン</div>
         <div class="return-no-data">
           この試験は資格DBに紐付いていません<br>
-          <button class="tappable" onclick="openCertPicker('${escapeHtml(exam.id)}')">手当情報を選んで紐付ける</button>
+          <button class="tappable" data-open-picker="${escapeHtml(exam.id)}">手当情報を選んで紐付ける</button>
         </div>
       </div>`;
     return;
@@ -2459,6 +2637,7 @@ function applyCertPick(dbId) {
   const exam = getExam(_pickerForExamId);
   if (!exam) { closeModal(); return; }
   exam.certDbId = (dbId === '__none__') ? null : dbId;
+  exam._updatedAt = Date.now();
   saveState();
   closeModal();
   haptic();
@@ -2623,12 +2802,13 @@ function addExamFromCatalog(dbId) {
     id: newId(),
     name: entry.name,
     emoji: '📘',
-    examDate: dd.toISOString().split('T')[0],
+    examDate: localDateStr(dd),
     weeklyHours: 5,
     targetHours: 100,
     color: EXAM_COLORS[colorIndex],
     certDbId: dbId,
-    links: []
+    links: [],
+    _updatedAt: Date.now()
   };
   state.exams.push(exam);
   state.ui.heroExamId = exam.id;
@@ -2646,7 +2826,8 @@ function addOwnedFromCatalog(dbId) {
   state.owned.push({
     id: newId(),
     dbId,
-    acquiredAt: new Date().toISOString().split('T')[0],
+    acquiredAt: localDateStr(),
+    _updatedAt: Date.now()
   });
   saveState();
   haptic();
@@ -2756,6 +2937,7 @@ function renderOwned() {
 }
 
 function deleteOwned(id) {
+  recordDeletion('owned', id);
   state.owned = state.owned.filter(o => o.id !== id);
   saveState();
   haptic();
@@ -2802,12 +2984,18 @@ function addLog() {
   if (hours <= 0)   { showToast('⚠️ 時間を入力してください'); return; }
   if (hours > 12)   { showToast('⚠️ 1回あたり12時間以内で入力してください'); return; }
 
-  const today   = new Date().toISOString().split('T')[0];
+  const today   = localDateStr();
   const logDate = document.getElementById('logDate').value || today;
 
-  state.logs.push({ id: newId(), examId, hours, note, date: logDate, ts: Date.now() });
-  if (state.logs.length > MAX_LOGS) state.logs = state.logs.slice(-MAX_LOGS);
-  if (logDate === today) updateStreak();
+  state.logs.push({ id: newId(), examId, hours, note, date: logDate, ts: Date.now(), _updatedAt: Date.now() });
+  let trimmed = false;
+  if (state.logs.length > MAX_LOGS) {
+    const overflow = state.logs.length - MAX_LOGS;
+    state.logs.slice(0, overflow).forEach(l => recordDeletion('logs', l.id));
+    state.logs = state.logs.slice(-MAX_LOGS);
+    trimmed = true;
+  }
+  updateStreak();
   state.ui.historyPage = 1;
   saveState();
 
@@ -2816,7 +3004,9 @@ function addLog() {
   document.getElementById('logDate').value  = today;
   haptic('heavy');
   render();
-  showToast(`✅ ${hours}時間を記録しました！`);
+  showToast(trimmed
+    ? `✅ ${hours}時間を記録しました！（保存上限${MAX_LOGS}件のため一番古い記録が削除されました）`
+    : `✅ ${hours}時間を記録しました！`);
 }
 
 // ─── Actions: Exam CRUD ────────────────────────────────────
@@ -2838,7 +3028,8 @@ function addExam() {
   const exam = {
     id: newId(), name, emoji,
     examDate: date, weeklyHours: weekly, targetHours: target,
-    color: EXAM_COLORS[colorIndex], certDbId: _newExamCertDbId, links: []
+    color: EXAM_COLORS[colorIndex], certDbId: _newExamCertDbId, links: [],
+    _updatedAt: Date.now()
   };
   state.exams.push(exam);
   state.ui.heroExamId = exam.id;
@@ -2863,7 +3054,17 @@ function updateExamField(examId, field, value) {
     const min = field === 'targetHours' ? 10 : 1;
     value = Math.max(min, parseInt(value) || min);
   }
+  if (field === 'examDate') {
+    // 空欄・不正な日付だとdaysUntil()等がNaNになり画面全体が壊れるため、無効なら保存せず元に戻す
+    if (!value || isNaN(new Date(value).getTime())) {
+      showToast('⚠️ 有効な試験日を入力してください');
+      const input = document.getElementById(`exam_date_${examId}`);
+      if (input) input.value = exam.examDate;
+      return;
+    }
+  }
   exam[field] = value;
+  exam._updatedAt = Date.now();
   saveState();
   // ホーム表示中なら即反映
   if (state.ui.currentPage === 'home') render();
@@ -2885,9 +3086,12 @@ function confirmDeleteExam(examId) {
         : 'この操作は取り消せません。'}</div>
       <div class="modal-actions">
         <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
-        <button class="modal-btn danger tappable" onclick="execDeleteExam('${escapeHtml(examId)}')">削除する</button>
+        <button class="modal-btn danger tappable">削除する</button>
       </div>
     </div>`;
+  // examId をJS変数として直接クロージャで渡す（文字列補間だとHTML実体参照デコード経由での
+  // インジェクションを防ぎきれないため、ここだけはonclick文字列を使わない）
+  overlay.querySelector('.modal-btn.danger').addEventListener('click', () => execDeleteExam(examId));
   overlay.addEventListener('click', closeModal);
   overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
   document.body.appendChild(overlay);
@@ -2897,13 +3101,16 @@ function confirmDeleteExam(examId) {
 function execDeleteExam(examId) {
   const exam = getExam(examId);
   if (!exam) { closeModal(); return; }
-  // ログも削除
-  state.logs   = state.logs.filter(l => l.examId !== examId);
-  state.exams  = state.exams.filter(e => e.id !== examId);
+  // ログも削除（マージ時に復活しないよう、それぞれtombstoneを記録）
+  state.logs.filter(l => l.examId === examId).forEach(l => recordDeletion('logs', l.id));
+  state.logs  = state.logs.filter(l => l.examId !== examId);
+  recordDeletion('exams', examId);
+  state.exams = state.exams.filter(e => e.id !== examId);
   // heroが消えた場合は先頭に戻す
   if (state.ui.heroExamId === examId) {
     state.ui.heroExamId = state.exams[0]?.id || null;
   }
+  updateStreak();
   saveState();
   closeModal();
   haptic();
@@ -2929,6 +3136,7 @@ function addLink(examId) {
   if (!safeUrl(url)) { showToast('⚠️ URLは https:// で始まる形式で入力してください'); return; }
 
   exam.links.push({ id: newId(), label, url: safeUrl(url) });
+  exam._updatedAt = Date.now();
   saveState();
   if (labelEl) labelEl.value = '';
   if (urlEl)   urlEl.value   = '';
@@ -2946,6 +3154,7 @@ function deleteLink(examId, linkId) {
   const link = exam.links.find(l => l.id === linkId);
   if (!link) return;
   exam.links = exam.links.filter(l => l.id !== linkId);
+  exam._updatedAt = Date.now();
   saveState();
   haptic();
   renderSettings();
@@ -2953,38 +3162,224 @@ function deleteLink(examId, linkId) {
   showToast('🗑 リンクを削除しました');
 }
 
-// ─── Actions: Log delete ───────────────────────────────────
+// ─── Actions: Log delete（即削除＋5秒間Undo可能） ───────────
+// 5秒以内に連続で削除された記録は1つのUndoキューにまとめる。
+// 以前は新しい削除のたびにUndoトーストのハンドラを上書きしていたため、
+// 連続削除すると直前の削除しか元に戻せなかった（それより前の削除は
+// トーストがまだ消えていないように見えても実質Undo不能になっていた）。
+let _pendingLogDeletions = [];
+
 function deleteLog(id) {
+  const idx = state.logs.findIndex(l => l.id === id);
+  if (idx === -1) return;
+  const [removed] = state.logs.splice(idx, 1);
+  recordDeletion('logs', id);
+  _pendingLogDeletions.push({ log: removed, index: idx });
+  updateStreak();
+  saveState();
+  haptic();
+  render();
+  const n = _pendingLogDeletions.length;
+  showUndoToast(
+    n > 1 ? `🗑 記録を${n}件削除しました` : '🗑 記録を削除しました',
+    undoPendingLogDeletions,
+    5000,
+    () => { _pendingLogDeletions = []; } // 時間切れでUndo不能になったらキューも空にする
+  );
+}
+
+function undoPendingLogDeletions() {
+  // 削除した順の逆順に戻すことで、それぞれの元の位置にできるだけ近い形で復元する
+  const pending = _pendingLogDeletions.slice().reverse();
+  pending.forEach(({ log, index }) => {
+    if (state._deleted?.logs) delete state._deleted.logs[log.id];
+    log._updatedAt = Date.now(); // マージ時、他端末に残る削除記録よりこの復元を優先させる
+    const insertAt = Math.min(index, state.logs.length);
+    state.logs.splice(insertAt, 0, log);
+  });
+  const n = _pendingLogDeletions.length;
+  _pendingLogDeletions = [];
+  updateStreak();
+  saveState();
+  haptic();
+  render();
+  showToast(n > 1 ? `↩️ 記録を${n}件元に戻しました` : '↩️ 記録を元に戻しました');
+}
+
+// ─── Actions: Log edit ──────────────────────────────────────
+let _editingLogId = null;
+
+function openEditLogModal(id) {
   if (document.querySelector('.modal-overlay')) return;
+  const log = state.logs.find(l => l.id === id);
+  if (!log) return;
+  _editingLogId = id;
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-title">記録を削除しますか？</div>
-      <div class="modal-desc">この操作は取り消せません。</div>
+      <div class="modal-title">記録を編集</div>
+      <div class="input-group">
+        <label class="input-label-text" for="editLogExam">試験</label>
+        <select class="input-field" id="editLogExam">
+          ${state.exams.map(e => `<option value="${escapeHtml(e.id)}"${e.id === log.examId ? ' selected' : ''}>${escapeHtml(e.emoji)} ${escapeHtml(e.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="input-row-2">
+        <div class="input-group">
+          <label class="input-label-text" for="editLogHours">学習時間</label>
+          <input class="input-field" type="number" id="editLogHours" min="0.5" max="12" step="0.5" value="${escapeHtml(String(log.hours))}" inputmode="decimal">
+        </div>
+        <div class="input-group">
+          <label class="input-label-text" for="editLogDate">日付</label>
+          <input class="input-field" type="date" id="editLogDate" value="${escapeHtml(log.date)}">
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label-text" for="editLogNote">メモ</label>
+        <input class="input-field" type="text" id="editLogNote" value="${escapeHtml(log.note || '')}" maxlength="60" placeholder="（任意）">
+      </div>
       <div class="modal-actions">
         <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
-        <button class="modal-btn danger tappable" onclick="execDeleteLog('${escapeHtml(id)}')">削除する</button>
+        <button class="modal-btn primary tappable" onclick="execEditLog()">保存する</button>
       </div>
     </div>`;
   overlay.addEventListener('click', closeModal);
   overlay.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('editLogHours')?.focus(), 100);
 }
 
-function execDeleteLog(id) {
-  state.logs = state.logs.filter(l => l.id !== id);
+function execEditLog() {
+  const log = state.logs.find(l => l.id === _editingLogId);
+  if (!log) { closeModal(); return; }
+
+  const examId = document.getElementById('editLogExam').value;
+  const hours  = parseFloat(document.getElementById('editLogHours').value);
+  const date   = document.getElementById('editLogDate').value;
+  const note   = document.getElementById('editLogNote').value.trim();
+
+  if (!examId)      { showToast('⚠️ 試験を選択してください'); return; }
+  if (!(hours > 0)) { showToast('⚠️ 時間を入力してください'); return; }
+  if (hours > 12)   { showToast('⚠️ 1回あたり12時間以内で入力してください'); return; }
+  if (!date)        { showToast('⚠️ 日付を入力してください'); return; }
+
+  log.examId = examId;
+  log.hours  = hours;
+  log.date   = date;
+  log.note   = note;
+  log._updatedAt = Date.now();
+  updateStreak();
   saveState();
+  _editingLogId = null;
   closeModal();
   haptic();
   render();
-  showToast('🗑 記録を削除しました');
+  showToast('✅ 記録を更新しました');
 }
 
 function closeModal() {
   document.querySelector('.modal-overlay')?.remove();
   document.body.style.overflow = '';
+}
+
+// ─── Actions: Backup / Restore ─────────────────────────────
+function exportData() {
+  try {
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const today = localDateStr();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `合格ナビ_バックアップ_${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    haptic();
+    showToast('✅ バックアップファイルを保存しました');
+  } catch (e) {
+    showToast('⚠️ バックアップの保存に失敗しました');
+  }
+}
+
+function triggerImport() {
+  document.getElementById('importFileInput')?.click();
+}
+
+let _pendingImport = null;
+
+function handleImportFile(e) {
+  const file = e.target.files?.[0];
+  e.target.value = ''; // 同じファイルを連続選択できるようにリセット
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(ev.target.result);
+    } catch {
+      showToast('⚠️ ファイルの読み込みに失敗しました（JSON形式ではありません）');
+      return;
+    }
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.exams) || !Array.isArray(parsed.logs)) {
+      showToast('⚠️ このファイルは合格ナビのバックアップ形式ではありません');
+      return;
+    }
+    _pendingImport = parsed;
+    confirmImportModal(parsed);
+  };
+  reader.onerror = () => showToast('⚠️ ファイルの読み込みに失敗しました');
+  reader.readAsText(file);
+}
+
+function confirmImportModal(parsed) {
+  if (document.querySelector('.modal-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-title">バックアップを復元しますか？</div>
+      <div class="modal-desc">
+        インポート内容：試験 ${parsed.exams.length}件・記録 ${parsed.logs.length}件<br>
+        現在のデータ（試験 ${state.exams.length}件・記録 ${state.logs.length}件）は上書きされます。この操作は取り消せません。
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel tappable" onclick="cancelImport()">キャンセル</button>
+        <button class="modal-btn danger tappable" onclick="execImport()">復元する</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', cancelImport);
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') cancelImport(); });
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function cancelImport() {
+  _pendingImport = null;
+  closeModal();
+}
+
+function execImport() {
+  if (!_pendingImport) { closeModal(); return; }
+  try {
+    state = migrateState(_pendingImport);
+  } catch {
+    _pendingImport = null;
+    closeModal();
+    showToast('⚠️ 復元に失敗しました');
+    return;
+  }
+  _pendingImport = null;
+  updateStreak();
+  saveState();
+  closeModal();
+  haptic('heavy');
+  showPage('settings');
+  showToast('✅ バックアップを復元しました');
 }
 
 // ─── Navigation ────────────────────────────────────────────
@@ -3002,35 +3397,119 @@ function showPage(page) {
 
 // ─── Toast ─────────────────────────────────────────────────
 let toastTimer = null;
+let toastUndoTimer = null;
+let _activeUndoExpire = null; // 表示中のUndoトーストが中断された時に呼ぶ後始末処理
+
 function showToast(msg) {
+  clearTimeout(toastUndoTimer);
+  if (_activeUndoExpire) {
+    const fn = _activeUndoExpire;
+    _activeUndoExpire = null;
+    fn(); // 別のトーストで上書きされた＝そのUndoはもう選べないので、保留中のキューを確定させる
+  }
   const t = document.getElementById('toast');
+  t.innerHTML = '';
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
+// メッセージ＋「元に戻す」ボタン付きトースト
+function showUndoToast(msg, onUndo, duration = 5000, onExpire = null) {
+  const t = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  clearTimeout(toastUndoTimer);
+  _activeUndoExpire = onExpire;
+  t.innerHTML = `<span>${escapeHtml(msg)}</span><button type="button" class="toast-undo-btn tappable" id="toastUndoBtn">元に戻す</button>`;
+  t.classList.add('show');
+  document.getElementById('toastUndoBtn').onclick = () => {
+    clearTimeout(toastUndoTimer);
+    _activeUndoExpire = null;
+    t.classList.remove('show');
+    onUndo();
+  };
+  toastUndoTimer = setTimeout(() => {
+    t.classList.remove('show');
+    const fn = _activeUndoExpire;
+    _activeUndoExpire = null;
+    fn?.();
+  }, duration);
+}
+
 // ─── Init ──────────────────────────────────────────────────
 // イベント委譲：ログ削除
 document.getElementById('historyList').addEventListener('click', e => {
-  const btn = e.target.closest('[data-delete-id]');
-  if (btn) deleteLog(btn.dataset.deleteId);
+  const editBtn = e.target.closest('[data-edit-id]');
+  if (editBtn) { openEditLogModal(editBtn.dataset.editId); return; }
+  const delBtn = e.target.closest('[data-delete-id]');
+  if (delBtn) deleteLog(delBtn.dataset.deleteId);
 });
 
-// イベント委譲：リンク削除
+// イベント委譲：リンク削除、試験削除、資格DBピッカー、リンク追加
+// （examId をinline onclick文字列に埋め込むのではなく、data属性経由でJS変数として渡す。
+//   文字列補間だとHTMLエンティティのデコードタイミングの都合でエスケープが効かないケースがある）
 document.getElementById('examList').addEventListener('click', e => {
-  const btn = e.target.closest('[data-link-id]');
-  if (btn) deleteLink(btn.dataset.examId, btn.dataset.linkId);
+  const linkDelBtn = e.target.closest('[data-link-id]');
+  if (linkDelBtn) { deleteLink(linkDelBtn.dataset.examId, linkDelBtn.dataset.linkId); return; }
+  const delExamBtn = e.target.closest('[data-confirm-delete]');
+  if (delExamBtn) { confirmDeleteExam(delExamBtn.dataset.confirmDelete); return; }
+  const pickerBtn = e.target.closest('[data-open-picker]');
+  if (pickerBtn) { openCertPicker(pickerBtn.dataset.openPicker); return; }
+  const addLinkBtn = e.target.closest('[data-add-link]');
+  if (addLinkBtn) { addLink(addLinkBtn.dataset.addLink); return; }
+});
+// イベント委譲：試験日・目標時間・週間目標の変更
+document.getElementById('examList').addEventListener('change', e => {
+  const field = e.target.closest('[data-field-exam]');
+  if (!field) return;
+  const raw = field.dataset.field === 'examDate' ? field.value : +field.value;
+  updateExamField(field.dataset.fieldExam, field.dataset.field, raw);
+});
+
+// イベント委譲：ホーム画面の試験タブ切り替え
+document.getElementById('certTabs').addEventListener('click', e => {
+  const btn = e.target.closest('[data-exam-id]');
+  if (btn) switchHeroExam(btn.dataset.examId);
+});
+
+// イベント委譲：ホーム画面「手当情報を選んで紐付ける」ボタン
+document.getElementById('returnSection').addEventListener('click', e => {
+  const btn = e.target.closest('[data-open-picker]');
+  if (btn) openCertPicker(btn.dataset.openPicker);
 });
 
 // 日付フィールド初期値
-document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+document.getElementById('logDate').value = localDateStr();
+
+// タブを閉じる／バックグラウンドに回す直前は、1.5秒のdebounceを待たずに
+// 保留中の変更をすぐ送っておく（間に合わない場合もあるが、何もしないよりはまし）
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && _saveTimer) {
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+    pushToFirestore();
+  }
+});
 
 updateStreak();
 showPage(state.ui.currentPage || 'home');
-// Firestore初期ロード（module scriptの読み込み完了後に実行）
+
+// Firestore初期ロード：
+// 以前は「window loadから300ms待てばFirebaseモジュールの読み込みが終わっているはず」という
+// 決め打ちだったため、回線が遅い環境だと間に合わずオフライン扱いになり、以後リトライもされなかった。
+// firebase-init側が発火する準備完了／失敗イベントを待って開始し、両方来ない万一のケースに備えて
+// フォールバックのタイムアウトも残す。
+let _initFirestoreStarted = false;
+function startInitFirestoreOnce() {
+  if (_initFirestoreStarted) return;
+  _initFirestoreStarted = true;
+  initFirestore();
+}
+window.addEventListener('firebase-ready', startInitFirestoreOnce);
+window.addEventListener('firebase-failed', startInitFirestoreOnce); // 失敗時もオフライン判定させるため即座に呼ぶ
 window.addEventListener('load', () => {
-  setTimeout(initFirestore, 300);
+  setTimeout(startInitFirestoreOnce, 2000); // 上記イベントが来なかった場合の保険
 });
 </script>
 </body>
