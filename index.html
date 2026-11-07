@@ -325,7 +325,36 @@ main {
 .goal-badge.done { background: var(--green-light); color: #15803d; }
 .goal-badge.pend { background: var(--orange-light); color: var(--orange-text); }
 
+/* ─── Settings: ジャンプ & 折りたたみ ─── */
+.settings-jump { display:flex; gap:8px; overflow-x:auto; padding:12px 16px 0; scrollbar-width:none; }
+.settings-jump::-webkit-scrollbar { display:none; }
+.settings-jump button {
+  flex-shrink:0; white-space:nowrap; background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font:inherit; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; min-height:36px;
+}
+.settings-jump button:active { background:var(--orange-light); color:var(--orange-text); }
+.settings-sec { scroll-margin-top:72px; }
+details.settings-fold { margin:0; }
+details.settings-fold > summary {
+  list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+  padding:16px 16px 0; margin-bottom:14px; min-height:44px;
+}
+details.settings-fold > summary::-webkit-details-marker { display:none; }
+details.settings-fold > summary::after { content:'▾'; color:var(--sub); font-size:14px; transition:transform .2s; }
+details.settings-fold:not([open]) > summary::after { transform:rotate(-90deg); }
+details.settings-fold:not([open]) > summary { margin-bottom:4px; }
+
 /* ─── History ─── */
+.hist-more { background:none; border:none; color:var(--sub); font-size:20px; font-weight:900; line-height:1;
+  min-width:44px; min-height:44px; border-radius:8px; }
+.hist-more:active { background:var(--border); }
+.hist-menu { position:fixed; z-index:calc(var(--z-header, 100) + 50); background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); padding:4px; min-width:130px; }
+.hist-menu button { display:flex; width:100%; align-items:center; gap:8px; background:none; border:none; color:var(--text);
+  font:inherit; font-size:14px; font-weight:700; padding:12px 14px; min-height:44px; border-radius:8px; text-align:left; }
+.hist-menu button:active { background:var(--orange-light); }
+.hist-menu button.danger { color:var(--red); }
+.hist-menu button.danger:active { background:var(--red-light); }
 .history-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
 .history-item {
   background: var(--surface); border: 1px solid var(--border);
@@ -336,7 +365,7 @@ main {
   position: relative;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-.hist-main { flex: 1; padding-right: 72px; }
+.hist-main { flex: 1; min-width: 0; }
 .hist-cert { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
 .hist-note { font-size: 12px; color: var(--sub); }
 .hist-hours {
@@ -345,19 +374,9 @@ main {
 }
 .hist-hours-unit { font-size: 12px; color: var(--sub); font-family: inherit; }
 .hist-actions {
-  position: absolute; top: 0; right: 0;
+  flex-shrink: 0; margin: -8px -8px -8px 2px;
   display: flex; align-items: center;
 }
-.hist-edit, .hist-delete {
-  background: none; border: none; font-size: 15px;
-  color: var(--sub); padding: 0;
-  border-radius: 6px; opacity: 0.75; line-height: 1;
-  transition: opacity var(--transition), background var(--transition);
-  min-width: 36px; min-height: 44px;
-  display: flex; align-items: center; justify-content: center;
-}
-.hist-edit:active { opacity: 1; background: var(--orange-light); color: var(--orange-text); }
-.hist-delete:active { opacity: 1; background: var(--red-light); color: var(--red); }
 .hist-total {
   font-size: 12px; color: var(--sub); font-weight: 600;
 }
@@ -1238,7 +1257,15 @@ try {
 
     <!-- ページ：設定 -->
     <div id="page-settings" class="page">
+      <div class="settings-jump" id="settingsJump" role="navigation" aria-label="設定の項目">
+        <button type="button" data-jump="sec-account">アカウント</button>
+        <button type="button" data-jump="sec-reminder">リマインド</button>
+        <button type="button" data-jump="sec-theme">表示</button>
+        <button type="button" data-jump="sec-exams">試験</button>
+        <button type="button" data-jump="sec-data">データ</button>
+      </div>
       <!-- アカウント（Googleログイン／クラウド同期） -->
+      <div class="settings-sec" id="sec-account"></div>
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">アカウント</span>
@@ -1247,11 +1274,8 @@ try {
       <div class="settings-card" id="accountCard"></div>
 
       <!-- リマインド -->
-      <div style="padding:16px 16px 0;">
-        <div class="section-head" style="padding:0;margin-bottom:14px;">
-          <span class="section-title">リマインド</span>
-        </div>
-      </div>
+      <details class="settings-fold settings-sec" id="sec-reminder">
+      <summary><span class="section-title">リマインド</span></summary>
       <div class="settings-card" id="reminderSettings">
         <div class="settings-row">
           <div>
@@ -1272,8 +1296,10 @@ try {
           <input class="switch" type="checkbox" id="remExamOn" aria-label="試験直前のお知らせ">
         </div>
       </div>
+      </details>
 
       <!-- 表示（テーマ） -->
+      <div class="settings-sec" id="sec-theme"></div>
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">表示</span>
@@ -1292,6 +1318,7 @@ try {
         </div>
       </div>
 
+      <div class="settings-sec" id="sec-exams"></div>
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">試験を管理</span>
@@ -1301,9 +1328,8 @@ try {
       <div id="examList"></div>
 
       <!-- 試験追加フォーム -->
-      <div class="section-head" style="margin-top:4px;">
-        <span class="section-title">試験を追加</span>
-      </div>
+      <details class="settings-fold" id="sec-addexam">
+      <summary><span class="section-title">試験を追加</span></summary>
       <div class="add-exam-card">
         <div class="input-group">
           <label class="input-label-text">資格を選ぶ</label>
@@ -1328,11 +1354,11 @@ try {
         </div>
         <button class="btn-add-exam tappable" onclick="addExam()">試験を追加</button>
       </div>
+      </details>
 
       <!-- データ管理（バックアップ） -->
-      <div class="section-head" style="margin-top:4px;">
-        <span class="section-title">データ管理</span>
-      </div>
+      <details class="settings-fold settings-sec" id="sec-data">
+      <summary><span class="section-title">データ管理</span></summary>
       <div class="settings-card">
         <div class="settings-row">
           <div>
@@ -1349,6 +1375,7 @@ try {
           <button class="btn-db-pick tappable" type="button" onclick="triggerImport()">選ぶ</button>
         </div>
       </div>
+      </details>
       <input type="file" id="importFileInput" accept="application/json,.json" style="display:none" onchange="handleImportFile(event)">
     </div>
 
@@ -2154,8 +2181,7 @@ function renderHistory() {
       </div>
       ${logId ? `
       <div class="hist-actions">
-        <button class="hist-edit" data-edit-id="${logId}" aria-label="この記録を編集">✎</button>
-        <button class="hist-delete" data-delete-id="${logId}" aria-label="この記録を削除">✕</button>
+        <button class="hist-more" data-menu-id="${logId}" aria-haspopup="menu" aria-label="この記録の操作">⋯</button>
       </div>` : ''}
     </div>`;
   }).join('');
@@ -2172,6 +2198,8 @@ function showMoreHistory() {
 
 // ─── Render: Settings（試験一覧） ────────────────────────────
 function renderSettings() {
+  // 試験が1件もないときは、追加フォームを開いた状態にする
+  if (state.exams.length === 0) { const d = document.getElementById('sec-addexam'); if (d) d.open = true; }
   const el = document.getElementById('examList');
   if (!state.exams.length) {
     el.innerHTML = `<div class="empty-state" style="padding:24px;"><div class="empty-icon">📋</div><div class="empty-title">試験が未登録です</div><div class="empty-desc">下のフォームから追加してください</div></div>`;
@@ -3754,12 +3782,42 @@ document.addEventListener('visibilitychange', () => {
 
 // ─── Init ──────────────────────────────────────────────────
 // イベント委譲：ログ削除
-document.getElementById('historyList').addEventListener('click', e => {
-  const editBtn = e.target.closest('[data-edit-id]');
-  if (editBtn) { openEditLogModal(editBtn.dataset.editId); return; }
-  const delBtn = e.target.closest('[data-delete-id]');
-  if (delBtn) deleteLog(delBtn.dataset.deleteId);
+document.getElementById('settingsJump').addEventListener('click', e => {
+  const b = e.target.closest('[data-jump]'); if (!b) return;
+  const t = document.getElementById(b.dataset.jump); if (!t) return;
+  if (t.tagName === 'DETAILS') t.open = true;
+  t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 });
+function closeHistMenu() { document.getElementById('histMenu')?.remove(); }
+function openHistMenu(btn) {
+  const had = document.getElementById('histMenu');
+  closeHistMenu();
+  if (had && had.dataset.for === btn.dataset.menuId) return; // 同じ⋯を再タップで閉じる
+  const id = btn.dataset.menuId;
+  const m = document.createElement('div');
+  m.className = 'hist-menu'; m.id = 'histMenu'; m.dataset.for = id; m.setAttribute('role', 'menu');
+  m.innerHTML = '<button type="button" role="menuitem" data-act="edit">✎ 編集</button><button type="button" role="menuitem" class="danger" data-act="del">🗑 削除</button>';
+  document.body.appendChild(m);
+  _histMenuOpenedAt = Date.now();
+  const r = btn.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+  const left = Math.max(8, Math.min(window.innerWidth - mw - 8, r.right - mw));
+  const top = (r.bottom + mh + 8 > window.innerHeight) ? Math.max(8, r.top - mh - 4) : r.bottom + 4;
+  m.style.left = left + 'px'; m.style.top = top + 'px';
+  m.addEventListener('click', ev => {
+    const a = ev.target.closest('[data-act]'); if (!a) return;
+    closeHistMenu();
+    if (a.dataset.act === 'edit') openEditLogModal(id); else deleteLog(id);
+  });
+  m.querySelector('button').focus({ preventScroll: true });
+}
+document.getElementById('historyList').addEventListener('click', e => {
+  const b = e.target.closest('[data-menu-id]');
+  if (b) { e.stopPropagation(); openHistMenu(b); }
+});
+document.addEventListener('click', e => { if (!e.target.closest('#histMenu')) closeHistMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHistMenu(); });
+let _histMenuOpenedAt = 0;
+window.addEventListener('scroll', () => { if (Date.now() - _histMenuOpenedAt > 400) closeHistMenu(); }, { passive: true });
 
 // イベント委譲：リンク削除、試験削除、資格DBピッカー、リンク追加
 // （examId をinline onclick文字列に埋め込むのではなく、data属性経由でJS変数として渡す。
