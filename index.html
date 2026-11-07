@@ -542,6 +542,7 @@ details.settings-fold:not([open]) > summary { margin-bottom:4px; }
 .link-section-title { font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: 0.5px; }
 
 /* ─── Onboarding ─── */
+.onboard-banner.col { flex-direction:column; align-items:stretch; gap:6px; }
 .onboard-banner {
   margin: 0 16px 14px;
   background: var(--blue-light); border: 1.5px solid #bfdbfe;
@@ -638,6 +639,19 @@ nav {
   margin: 0 16px 12px; box-shadow: var(--shadow-card);
 }
 .return-card.has-data { border-color: var(--orange-mid); background: linear-gradient(180deg, var(--orange-light) 0%, var(--surface) 60%); }
+.return-card.fold { padding:0; }
+.return-card.fold > summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:14px 16px; min-height:48px; }
+.return-card.fold > summary::-webkit-details-marker { display:none; }
+.return-card.fold > summary .return-title { margin:0; }
+.return-card.fold > summary .return-head { font-family:'Nunito',sans-serif; font-weight:900; font-size:16px; color:var(--orange-text); white-space:nowrap; }
+.return-card.fold > summary .return-head::after { content:'▾'; color:var(--sub); font-size:13px; margin-left:8px; display:inline-block; transition:transform .2s; }
+.return-card.fold:not([open]) > summary .return-head::after { transform:rotate(-90deg); }
+.return-card.fold > .return-inner { padding:0 16px 14px; }
+.sample-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.sample-btn { flex:1 1 140px; background:var(--surface); border:1.5px solid #93c5fd; color:#1d4ed8; font:inherit; font-size:13px; font-weight:700;
+  border-radius:12px; padding:10px 12px; min-height:44px; text-align:left; }
+.sample-btn:active { background:var(--blue-light); }
 .return-title {
   font-size: 12px; font-weight: 700; color: var(--sub);
   text-transform: uppercase; letter-spacing: 0.8px;
@@ -1031,6 +1045,7 @@ nav.nav-4tabs .nav-btn .nav-icon { font-size: 19px; }
 :root[data-theme="dark"] .goal-badge.done { color: #4ade80; }
 :root[data-theme="dark"] .btn-exam-delete { border-color: #7f1d1d; }
 :root[data-theme="dark"] .onboard-banner { border-color: #1e3a8a; }
+:root[data-theme="dark"] .sample-btn { border-color:#1e3a8a; color:#93c5fd; }
 :root[data-theme="dark"] .onboard-banner-text { color: #93c5fd; }
 :root[data-theme="dark"] .toast { background: #f3ece4; color: #1c1410; }
 :root[data-theme="dark"] .toast-undo-btn { color: #1c1410; border-color: rgba(0,0,0,0.35); }
@@ -1183,11 +1198,11 @@ try {
       <div id="alertBanners"></div>
       <div id="returnSection"></div>
       <div id="onboardBanner" style="display:none"></div>
-      <div class="section-head">
+      <div class="section-head" id="progressHead">
         <span class="section-title">進捗</span>
       </div>
       <div id="progressCards"></div>
-      <div class="section-head">
+      <div class="section-head" id="goalHead">
         <span class="section-title">今週の目標</span>
       </div>
       <div class="goal-card" id="goalCard"></div>
@@ -2058,21 +2073,37 @@ document.getElementById('quickLog').addEventListener('click', e => {
 });
 
 // ─── Render: Onboarding ────────────────────────────────────
+document.getElementById('onboardBanner').addEventListener('click', e => {
+  const b = e.target.closest('[data-sample]'); if (!b) return;
+  const entry = CERT_DB.find(c => c.code === b.dataset.sample || c.name === b.dataset.sample);
+  if (entry) addExamFromCatalog(entry.dbId, { stay: true });
+});
 function renderOnboarding() {
   const banner = document.getElementById('onboardBanner');
   if (!banner) return;
+  // 試験がないときは、空の「進捗」「今週の目標」を隠す
+  const none = state.exams.length === 0;
+  ['progressHead','progressCards','goalHead','goalCard'].forEach(id => { const x = document.getElementById(id); if (x) x.style.display = none ? 'none' : ''; });
   if (state.exams.length === 0) {
     banner.style.display = 'flex';
-    banner.className = 'onboard-banner';
+    banner.className = 'onboard-banner col';
     banner.innerHTML = `
-      <div class="onboard-banner-text">⚙️ 試験を追加してください</div>
-      <button class="onboard-banner-btn tappable" onclick="showPage('settings')">設定へ →</button>`;
+      <div class="onboard-banner-text">👋 はじめに、受験する資格を登録しましょう。<br>下のサンプルから始めると、あとで日付や目標を変えられます。</div>
+      <div class="sample-row">
+        <button class="sample-btn tappable" type="button" data-sample="基本情報技術者">📘 基本情報技術者</button>
+        <button class="sample-btn tappable" type="button" data-sample="AZ-900">📘 AZ-900</button>
+      </div>
+      <div style="margin-top:6px;"><button class="onboard-banner-btn tappable" onclick="showPage('settings')">自分で追加する →</button></div>`;
   } else if (state.logs.length === 0) {
     banner.style.display = 'flex';
     banner.className = 'onboard-banner';
+    banner.className = 'onboard-banner col';
     banner.innerHTML = `
-      <div class="onboard-banner-text">✏️ 学習時間を記録してください</div>
-      <button class="onboard-banner-btn tappable" onclick="showPage('log')">記録へ →</button>`;
+      <div class="onboard-banner-text">✏️ 学習時間を記録してみましょう。<br>試験日と目標は仮の設定（サンプル）です。自分の予定に合わせて変えるか、不要なら削除してください。</div>
+      <div class="sample-row">
+        <button class="sample-btn tappable" type="button" onclick="showPage('log')">✏️ 記録する</button>
+        <button class="sample-btn tappable" type="button" onclick="showPage('settings')">⚙️ 試験を編集</button>
+      </div>`;
   } else {
     banner.style.display = 'none';
   }
@@ -2413,13 +2444,23 @@ function renderReturnSection() {
     alertHtml = `<div class="return-note alert">⚠️ ${escapeHtml(main.message)}</div>`;
   }
 
+  const head = ret.type === 'onetime' ? '一時金 ' + fmtMoney(ret.onetime)
+             : ret.type === 'monthly' ? '月額 ' + fmtMoney(ret.monthly)
+             : '受験料のみ';
   wrap.innerHTML = `
-    <div class="return-card has-data">
-      <div class="return-title">💰 合格時のリターン ${renderCertBadge(entry)}</div>
-      ${body}
-      ${alertHtml}
-    </div>`;
+    <details class="return-card has-data fold"${_returnOpen ? ' open' : ''}>
+      <summary><span class="return-title">💰 合格時のリターン</span><span class="return-head">${escapeHtml(head)}</span></summary>
+      <div class="return-inner">
+        <div style="margin-bottom:8px;">${renderCertBadge(entry)}</div>
+        ${body}
+        ${alertHtml}
+      </div>
+    </details>`;
 }
+let _returnOpen = false;
+document.getElementById('returnSection').addEventListener('toggle', e => {
+  if (e.target.matches('details.return-card')) _returnOpen = e.target.open;
+}, true);
 
 // ─── Render: 期限アラートバナー（ホーム） ─────────────────
 function renderAlertBanners() {
@@ -2439,11 +2480,12 @@ function renderAlertBanners() {
 
   if (!items.length) { wrap.innerHTML = ''; return; }
 
-  // 最大2件まで表示
-  wrap.innerHTML = items.slice(0, 2).map(it => `
+  // ホームを長くしないため、最も急ぐ1件だけ表示（ほかは件数のみ）
+  const rest = items.length - 1;
+  wrap.innerHTML = items.slice(0, 1).map(it => `
     <div class="alert-banner ${escapeHtml(it.alert.urgency === 'high' ? 'high' : it.alert.urgency === 'mid' ? 'mid' : 'low')}">
       <span class="alert-banner-icon">⚠️</span>
-      <div><strong>${escapeHtml(it.ex.name)}</strong>：${escapeHtml(it.alert.message)}</div>
+      <div><strong>${escapeHtml(it.ex.name)}</strong>：${escapeHtml(it.alert.message)}${rest > 0 ? ` <span style="opacity:.75">（ほか${rest}件）</span>` : ''}</div>
     </div>
   `).join('');
 }
@@ -2803,7 +2845,7 @@ function bindCatalogEvents() {
 }
 
 // カタログ→学習中の試験に追加
-function addExamFromCatalog(dbId) {
+function addExamFromCatalog(dbId, opts = {}) {
   if (state.exams.length >= MAX_EXAMS) {
     showToast(`⚠️ 試験は最大${MAX_EXAMS}件までです`); return;
   }
@@ -2828,8 +2870,13 @@ function addExamFromCatalog(dbId) {
   state.ui.heroExamId = exam.id;
   saveState();
   haptic('heavy');
-  showToast(`「${entry.name}」を追加しました。試験日を設定してください`);
-  showPage('settings');
+  if (opts.stay) {
+    render();
+    showToast(`「${entry.name}」を追加しました。試験日は仮の設定です（設定で変更できます）`);
+  } else {
+    showToast(`「${entry.name}」を追加しました。試験日を設定してください`);
+    showPage('settings');
+  }
 }
 
 // カタログ→保有資格に追加
