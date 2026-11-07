@@ -817,10 +817,10 @@ nav {
 .owned-add-btn:active { background: var(--orange); color: #fff; }
 
 /* ─── ボトムナビ：5タブ対応（フォントを少し小さく） ─── */
-nav.nav-5tabs .nav-btn {
+nav.nav-4tabs .nav-btn {
   font-size: 11px;
 }
-nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
+nav.nav-4tabs .nav-btn .nav-icon { font-size: 19px; }
 
 /* ─── ボトムシート：選択リスト用 ─── */
 .modal-sheet.tall {
@@ -890,6 +890,17 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
   border: 1.5px solid var(--border); font-size: 13px; font-family: inherit;
 }
 .quick-chip:active { transform: scale(0.97); }
+
+/* ─── 資格タブ内の切替（保有／カタログ） ─── */
+.shikaku-seg {
+  display: flex; gap: 4px; margin: 16px 16px 0; padding: 4px;
+  background: var(--border); border-radius: 12px;
+}
+.shikaku-seg button {
+  flex: 1; min-height: 40px; border: none; border-radius: 9px;
+  background: transparent; color: var(--sub); font-size: 14px; font-weight: 700;
+}
+.shikaku-seg button.active { background: var(--surface); color: var(--orange-text); box-shadow: var(--shadow-card); }
 
 /* ─── 学習タイマー ─── */
 .timer-card {
@@ -1343,6 +1354,10 @@ try {
 
     <!-- ページ：カタログ -->
     <div id="page-catalog" class="page">
+      <div class="shikaku-seg" role="tablist" aria-label="資格">
+        <button type="button" role="tab" data-shikaku="owned" aria-selected="false" class="" onclick="showPage('owned')">保有</button>
+        <button type="button" role="tab" data-shikaku="catalog" aria-selected="true" class="active" onclick="showPage('catalog')">カタログ</button>
+      </div>
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">資格カタログ</span>
@@ -1362,6 +1377,10 @@ try {
 
     <!-- ページ：保有資格 -->
     <div id="page-owned" class="page">
+      <div class="shikaku-seg" role="tablist" aria-label="資格">
+        <button type="button" role="tab" data-shikaku="owned" aria-selected="true" class="active" onclick="showPage('owned')">保有</button>
+        <button type="button" role="tab" data-shikaku="catalog" aria-selected="false" class="" onclick="showPage('catalog')">カタログ</button>
+      </div>
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">保有資格 & 累計手当</span>
@@ -1374,18 +1393,15 @@ try {
     </div>
   </main>
 
-  <nav id="bottomNav" class="nav-5tabs">
+  <nav id="bottomNav" class="nav-4tabs">
     <button class="nav-btn active tappable" data-page="home" onclick="showPage('home')" aria-current="page">
       <span class="nav-icon">🏠</span><span>ホーム</span>
     </button>
     <button class="nav-btn tappable" data-page="log" onclick="showPage('log')">
       <span class="nav-icon">✏️</span><span>記録</span>
     </button>
-    <button class="nav-btn tappable" data-page="catalog" onclick="showPage('catalog')">
-      <span class="nav-icon">📚</span><span>カタログ</span>
-    </button>
-    <button class="nav-btn tappable" data-page="owned" onclick="showPage('owned')">
-      <span class="nav-icon">🏆</span><span>保有</span>
+    <button class="nav-btn tappable" data-page="shikaku" onclick="showPage(_lastShikakuPage)">
+      <span class="nav-icon">🏆</span><span>資格</span>
     </button>
     <button class="nav-btn tappable" data-page="settings" onclick="showPage('settings')">
       <span class="nav-icon">⚙️</span><span>設定</span>
@@ -3467,12 +3483,15 @@ function execImport() {
 }
 
 // ─── Navigation ────────────────────────────────────────────
+// 資格タブ（保有／カタログ）は、最後に開いた方を次回も開く
+let _lastShikakuPage = 'owned';
 function showPage(page) {
   state.ui.currentPage = page;
+  if (page === 'owned' || page === 'catalog') _lastShikakuPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => {
-    const isActive = b.dataset.page === page;
+    const isActive = b.dataset.page === page || (b.dataset.page === 'shikaku' && (page === 'owned' || page === 'catalog'));
     b.classList.toggle('active', isActive);
     isActive ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current');
   });
