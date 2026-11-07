@@ -31,7 +31,9 @@
   --surface: #ffffff;
   --border: #f0ebe2;
   --text: #1c1410;
-  --sub: #9e8e7e;
+  --sub: #716455;
+  --orange-text: #c2410c;
+  --red-text: #b91c1c;
   --orange: #f97316;
   --orange-light: #fff3e8;
   --orange-mid: #fed7aa;
@@ -78,6 +80,14 @@ input, textarea, select { font-family: inherit; font-size: 16px; }
 .tappable { transition: transform var(--transition), opacity var(--transition); -webkit-tap-highlight-color: transparent; }
 .tappable:active { transform: scale(0.97); opacity: 0.85; }
 
+/* ─── アクセシビリティ ─── */
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--orange-text); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
 /* ─── Header ─── */
 header {
   position: sticky; top: 0; z-index: var(--z-header);
@@ -94,12 +104,12 @@ header {
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 .sync-badge {
-  font-size: 11px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   padding: 3px 8px; border-radius: 20px;
   transition: all 0.3s ease;
 }
 .sync-badge.syncing  { background: #fef3c7; color: #b45309; }
-.sync-badge.synced   { background: var(--green-light); color: #16a34a; }
+.sync-badge.synced   { background: var(--green-light); color: #15803d; }
 .sync-badge.error    { background: var(--red-light); color: var(--red); }
 .sync-badge.offline  { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
 .sync-badge.signedout { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
@@ -140,11 +150,11 @@ main {
 .cert-tab.active {
   border-color: var(--orange);
   background: var(--orange-light);
-  color: var(--orange);
+  color: var(--orange-text);
 }
 
 .hero-card {
-  background: linear-gradient(135deg, #ff8c42 0%, #f97316 40%, #fb923c 70%, #fbbf24 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #d9480f 55%, #c2410c 100%);
   border-radius: var(--radius-l);
   padding: 24px 20px 20px;
   color: #fff;
@@ -179,7 +189,7 @@ main {
 }
 .hero-stats { display: flex; gap: 12px; position: relative; z-index: 1; }
 .hero-stat {
-  flex: 1; background: rgba(255,255,255,0.22);
+  flex: 1; background: rgba(124,45,18,0.30);
   border-radius: var(--radius-s); padding: 10px 12px;
   backdrop-filter: blur(4px);
 }
@@ -187,7 +197,7 @@ main {
   font-family: 'Nunito', sans-serif;
   font-size: 22px; font-weight: 900; line-height: 1;
 }
-.hero-stat-key { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.hero-stat-key { font-size: 12px; opacity: 0.85; margin-top: 2px; }
 
 /* ─── Daily Banner ─── */
 .daily-banner {
@@ -205,7 +215,7 @@ main {
   font-family: 'Nunito', sans-serif;
   font-size: 28px; font-weight: 900; line-height: 1;
 }
-.daily-banner.safe   .daily-banner-val { color: #16a34a; }
+.daily-banner.safe   .daily-banner-val { color: #15803d; }
 .daily-banner.warn   .daily-banner-val { color: #d97706; }
 .daily-banner.danger .daily-banner-val { color: var(--red); }
 .daily-banner-desc { font-size: 12px; color: var(--sub); margin-top: 2px; }
@@ -272,7 +282,7 @@ main {
 
 .btn-primary {
   width: 100%; height: 50px;
-  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  background: linear-gradient(135deg, #c2410c, #d1460d);
   color: #fff; border: none; border-radius: var(--radius-s);
   font-size: 16px; font-weight: 700;
   box-shadow: 0 4px 16px rgba(249,115,22,0.3);
@@ -288,7 +298,7 @@ main {
 }
 .chart-legend {
   display: flex; gap: 10px; flex-wrap: wrap;
-  font-size: 11px; color: var(--sub); margin-top: 8px;
+  font-size: 12px; color: var(--sub); margin-top: 8px;
 }
 .legend-dot {
   display: inline-block; width: 8px; height: 8px;
@@ -312,8 +322,8 @@ main {
   font-size: 12px; font-weight: 700;
   padding: 4px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
 }
-.goal-badge.done { background: var(--green-light); color: #16a34a; }
-.goal-badge.pend { background: var(--orange-light); color: var(--orange); }
+.goal-badge.done { background: var(--green-light); color: #15803d; }
+.goal-badge.pend { background: var(--orange-light); color: var(--orange-text); }
 
 /* ─── History ─── */
 .history-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
@@ -331,9 +341,9 @@ main {
 .hist-note { font-size: 12px; color: var(--sub); }
 .hist-hours {
   font-family: 'Nunito', sans-serif;
-  font-size: 20px; font-weight: 900; color: var(--orange); flex-shrink: 0;
+  font-size: 20px; font-weight: 900; color: var(--orange-text); flex-shrink: 0;
 }
-.hist-hours-unit { font-size: 11px; color: var(--sub); font-family: inherit; }
+.hist-hours-unit { font-size: 12px; color: var(--sub); font-family: inherit; }
 .hist-actions {
   position: absolute; top: 0; right: 0;
   display: flex; align-items: center;
@@ -341,17 +351,17 @@ main {
 .hist-edit, .hist-delete {
   background: none; border: none; font-size: 15px;
   color: var(--sub); padding: 0;
-  border-radius: 6px; opacity: 0.45; line-height: 1;
+  border-radius: 6px; opacity: 0.75; line-height: 1;
   transition: opacity var(--transition), background var(--transition);
   min-width: 36px; min-height: 44px;
   display: flex; align-items: center; justify-content: center;
 }
-.hist-edit:active { opacity: 1; background: var(--orange-light); color: var(--orange); }
+.hist-edit:active { opacity: 1; background: var(--orange-light); color: var(--orange-text); }
 .hist-delete:active { opacity: 1; background: var(--red-light); color: var(--red); }
 .hist-total {
   font-size: 12px; color: var(--sub); font-weight: 600;
 }
-.hist-total span { color: var(--orange); font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 14px; }
+.hist-total span { color: var(--orange-text); font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 14px; }
 .btn-show-more {
   display: block; width: calc(100% - 32px); margin: 10px 16px 0;
   padding: 10px; border: 1.5px solid var(--border);
@@ -359,7 +369,7 @@ main {
   font-size: 13px; font-weight: 700; color: var(--sub);
   transition: all var(--transition);
 }
-.btn-show-more:active { border-color: var(--orange); color: var(--orange); }
+.btn-show-more:active { border-color: var(--orange); color: var(--orange-text); }
 
 /* ─── Settings ─── */
 .settings-card {
@@ -405,7 +415,7 @@ main {
 }
 .btn-exam-delete {
   padding: 4px 10px; border: 1.5px solid #fecaca;
-  background: var(--red-light); color: var(--red);
+  background: var(--red-light); color: var(--red-text);
   border-radius: 20px; font-size: 12px; font-weight: 700;
   transition: all var(--transition);
   min-height: 44px;
@@ -422,7 +432,7 @@ main {
   flex: 1; min-width: 0;
   padding: 8px 12px; border-radius: var(--radius-s);
   background: var(--orange-light); border: 1.5px solid var(--orange-mid);
-  font-size: 13px; font-weight: 700; color: var(--orange);
+  font-size: 13px; font-weight: 700; color: var(--orange-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .db-pick-badge.empty {
@@ -436,7 +446,7 @@ main {
   color: var(--sub); white-space: nowrap;
   transition: all var(--transition);
 }
-.btn-db-pick:active { border-color: var(--orange); color: var(--orange); }
+.btn-db-pick:active { border-color: var(--orange); color: var(--orange-text); }
 
 /* ─── Add Exam Form ─── */
 .add-exam-card {
@@ -446,7 +456,7 @@ main {
 }
 .btn-add-exam {
   width: 100%; height: 46px;
-  background: var(--orange-light); color: var(--orange);
+  background: var(--orange-light); color: var(--orange-text);
   border: 2px solid var(--orange-mid); border-radius: var(--radius-s);
   font-size: 15px; font-weight: 700;
   transition: all var(--transition);
@@ -462,7 +472,7 @@ main {
 }
 .hero-link-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.22);
+  background: rgba(124,45,18,0.30);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255,255,255,0.35);
   border-radius: 20px; padding: 6px 14px;
@@ -483,7 +493,7 @@ main {
 }
 .link-item-info { flex: 1; min-width: 0; }
 .link-item-label { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.link-item-url   { font-size: 11px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link-item-url   { font-size: 12px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .btn-link-delete {
   flex-shrink: 0; background: none; border: none;
   font-size: 16px; color: var(--sub); padding: 0;
@@ -500,7 +510,7 @@ main {
 .add-link-row .input-field { font-size: 14px; padding: 8px 12px; }
 .btn-link-add {
   flex-shrink: 0; height: 42px; padding: 0 14px;
-  background: var(--orange-light); color: var(--orange);
+  background: var(--orange-light); color: var(--orange-text);
   border: 1.5px solid var(--orange-mid); border-radius: var(--radius-s);
   font-size: 13px; font-weight: 700; white-space: nowrap;
   transition: all var(--transition);
@@ -547,11 +557,11 @@ nav {
   flex: 1; height: 56px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 2px; background: none; border: none;
-  font-size: 10px; color: var(--sub); font-weight: 600;
+  font-size: 11px; color: var(--sub); font-weight: 600;
   transition: color var(--transition);
 }
 .nav-btn .nav-icon { font-size: 22px; }
-.nav-btn.active { color: var(--orange); }
+.nav-btn.active { color: var(--orange-text); }
 
 /* ─── Toast ─── */
 .toast {
@@ -562,9 +572,11 @@ nav {
   font-size: 13px; font-weight: 700;
   padding: 10px 20px; border-radius: 30px;
   z-index: var(--z-toast); white-space: normal; text-align: center; width: max-content; max-width: calc(100vw - 32px);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s;
+  /* 非表示のあいだは完全に見えず・触れなくする（下部ナビのタップを邪魔しないため） */
+  opacity: 0; visibility: hidden; pointer-events: none;
 }
-.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
 .toast { display: flex; align-items: center; gap: 10px; }
 .toast-undo-btn {
   background: none; border: 1px solid rgba(255,255,255,0.4);
@@ -576,7 +588,7 @@ nav {
 /* ─── 資格バッジ（手当額表示） ─── */
 .cert-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   padding: 2px 9px; border-radius: 20px;
   white-space: nowrap; flex-shrink: 0;
   vertical-align: middle;
@@ -592,7 +604,7 @@ nav {
 .cert-badge.snow      { background: #cffafe; color: #0e7490; border: 1px solid #a5f3fc; }
 .cert-badge.ms        { background: linear-gradient(135deg, #dbeafe, #ede9fe); color: #5b21b6; border: 1px solid #c7d2fe; }
 .cert-badge.no-cert   { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
-.cert-badge-flame { font-size: 10px; }
+.cert-badge-flame { font-size: 11px; }
 
 /* Hero内の手当額バッジ（上書き：白背景） */
 .hero-card .cert-badge {
@@ -620,16 +632,16 @@ nav {
 }
 .return-row .label { color: var(--sub); font-weight: 600; }
 .return-row .val { font-family: 'Nunito', sans-serif; font-weight: 900; color: var(--text); }
-.return-row.big .val { font-size: 22px; color: var(--orange); }
+.return-row.big .val { font-size: 22px; color: var(--orange-text); }
 .return-row.big .label { font-size: 13px; }
-.return-note { font-size: 11px; color: var(--sub); margin-top: 8px; line-height: 1.4; }
+.return-note { font-size: 12px; color: var(--sub); margin-top: 8px; line-height: 1.4; }
 .return-note.alert { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px; }
 .return-no-data {
   text-align: center; padding: 12px 0; font-size: 13px; color: var(--sub);
 }
 .return-no-data button {
   margin-top: 8px; padding: 6px 14px;
-  background: var(--orange-light); color: var(--orange);
+  background: var(--orange-light); color: var(--orange-text);
   border: 1px solid var(--orange-mid); border-radius: 20px;
   font-size: 12px; font-weight: 700;
 }
@@ -678,7 +690,7 @@ nav {
 .filter-chip.active {
   border-color: var(--orange);
   background: var(--orange-light);
-  color: var(--orange);
+  color: var(--orange-text);
 }
 
 .catalog-options {
@@ -691,14 +703,14 @@ nav {
   font-size: 12px; font-weight: 700; font-family: inherit;
 }
 .catalog-clear {
-  background: none; border: none; color: var(--orange);
+  background: none; border: none; color: var(--orange-text);
   font-size: 12px; font-weight: 700; min-height: 44px; padding: 0 6px;
 }
 .catalog-result-count {
   padding: 0 16px 8px;
   font-size: 12px; color: var(--sub);
 }
-.catalog-result-count strong { color: var(--orange); font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 14px; }
+.catalog-result-count strong { color: var(--orange-text); font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 14px; }
 
 .catalog-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
 .catalog-item {
@@ -716,7 +728,7 @@ nav {
 }
 .catalog-item-meta {
   display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-  font-size: 11px; color: var(--sub);
+  font-size: 12px; color: var(--sub);
 }
 .catalog-item-meta .program-tag {
   font-weight: 700; padding: 2px 8px; border-radius: 4px;
@@ -728,7 +740,7 @@ nav {
 .catalog-action-btn {
   flex: 1; padding: 7px 10px;
   border: 1px solid var(--orange-mid);
-  background: var(--orange-light); color: var(--orange);
+  background: var(--orange-light); color: var(--orange-text);
   border-radius: var(--radius-s);
   font-size: 12px; font-weight: 700;
   transition: all var(--transition);
@@ -765,7 +777,7 @@ nav {
   height: 100%; background: #fff; border-radius: 4px;
   transition: width 0.6s ease;
 }
-.owned-cap-label { font-size: 11px; opacity: 0.85; margin-top: 4px; }
+.owned-cap-label { font-size: 12px; opacity: 0.85; margin-top: 4px; }
 
 .owned-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
 .owned-item {
@@ -777,13 +789,13 @@ nav {
 }
 .owned-item-info { flex: 1; min-width: 0; }
 .owned-item-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
-.owned-item-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.owned-item-meta { font-size: 12px; color: var(--sub); margin-top: 2px; }
 .owned-item-amount {
   font-family: 'Nunito', sans-serif; font-weight: 900;
-  color: var(--orange); flex-shrink: 0; text-align: right;
+  color: var(--orange-text); flex-shrink: 0; text-align: right;
 }
 .owned-item-amount .v { font-size: 16px; }
-.owned-item-amount .u { font-size: 10px; color: var(--sub); margin-left: 2px; }
+.owned-item-amount .u { font-size: 11px; color: var(--sub); margin-left: 2px; }
 .owned-delete {
   flex-shrink: 0; background: none; border: none;
   font-size: 18px; color: var(--sub); padding: 0;
@@ -797,7 +809,7 @@ nav {
 .owned-add-btn {
   width: calc(100% - 32px); margin: 0 16px 16px;
   padding: 14px; background: var(--orange-light);
-  color: var(--orange); border: 2px dashed var(--orange-mid);
+  color: var(--orange-text); border: 2px dashed var(--orange-mid);
   border-radius: var(--radius-m);
   font-size: 14px; font-weight: 700;
   transition: all var(--transition);
@@ -806,7 +818,7 @@ nav {
 
 /* ─── ボトムナビ：5タブ対応（フォントを少し小さく） ─── */
 nav.nav-5tabs .nav-btn {
-  font-size: 9.5px;
+  font-size: 11px;
 }
 nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 
@@ -851,6 +863,34 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 .modal-check { display: flex; align-items: center; gap: 10px; margin: -8px 0 20px; font-size: 14px; color: var(--text); }
 .modal-check input { width: 20px; height: 20px; accent-color: var(--orange); flex-shrink: 0; }
 
+/* ─── ホーム：今日の記録 ─── */
+.quick-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 14px 16px;
+  margin: 0 16px 14px; box-shadow: var(--shadow-card);
+}
+.quick-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.quick-title { font-size: 15px; font-weight: 800; }
+.quick-sub { font-size: 12px; color: var(--sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quick-sub strong { font-family: 'Nunito', sans-serif; font-weight: 900; color: var(--text); }
+.quick-timer {
+  flex-shrink: 0; min-height: 44px; padding: 0 14px; border-radius: 22px;
+  border: 1.5px solid var(--orange-mid); background: var(--orange-light);
+  color: var(--orange-text); font-size: 13px; font-weight: 800;
+}
+.quick-chips { display: flex; gap: 8px; }
+.quick-chip {
+  flex: 1; min-height: 48px; border-radius: var(--radius-s);
+  border: none; color: #fff; font-size: 16px; font-weight: 800;
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, #c2410c, #d1460d);
+}
+.quick-chip.more {
+  flex: 0 0 auto; padding: 0 14px; background: var(--surface); color: var(--sub);
+  border: 1.5px solid var(--border); font-size: 13px; font-family: inherit;
+}
+.quick-chip:active { transform: scale(0.97); }
+
 /* ─── 学習タイマー ─── */
 .timer-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -865,7 +905,7 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
   font-size: 48px; line-height: 1.1; letter-spacing: 1px;
   font-variant-numeric: tabular-nums; color: var(--text);
 }
-.timer-card.running .timer-display { color: var(--orange); }
+.timer-card.running .timer-display { color: var(--orange-text); }
 .timer-actions { display: flex; gap: 8px; margin-top: 12px; }
 .timer-btn {
   flex: 1; height: 46px; border-radius: var(--radius-s);
@@ -875,18 +915,18 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 }
 .timer-btn.main {
   flex: 2; border: none; color: #fff;
-  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  background: linear-gradient(135deg, #c2410c, #d1460d);
   box-shadow: 0 4px 16px rgba(249,115,22,0.3);
 }
 .timer-btn:active { transform: scale(0.97); }
 .timer-btn:disabled { opacity: 0.4; pointer-events: none; }
 .timer-apply {
   width: 100%; margin-top: 8px; height: 44px;
-  border: 1.5px solid var(--orange-mid); background: var(--orange-light); color: var(--orange);
+  border: 1.5px solid var(--orange-mid); background: var(--orange-light); color: var(--orange-text);
   border-radius: var(--radius-s); font-size: 14px; font-weight: 700;
 }
 .timer-apply:disabled { opacity: 0.4; pointer-events: none; }
-.timer-hint { font-size: 11px; color: var(--sub); margin-top: 8px; }
+.timer-hint { font-size: 12px; color: var(--sub); margin-top: 8px; }
 
 /* ─── 表示テーマ切替 ─── */
 .theme-seg { display: flex; gap: 6px; flex-shrink: 0; }
@@ -895,7 +935,7 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
   border: 1.5px solid var(--border); background: var(--surface);
   font-size: 12px; font-weight: 700; color: var(--sub);
 }
-.theme-seg button.active { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+.theme-seg button.active { border-color: var(--orange); background: var(--orange-light); color: var(--orange-text); }
 
 /* ─── 学習の推移（週別・月別） ─── */
 .trend-stats { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -904,22 +944,22 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
   border-radius: var(--radius-s); padding: 8px 10px; text-align: center;
 }
 .trend-stat-val { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; line-height: 1.2; color: var(--text); }
-.trend-stat-val small { font-size: 11px; font-weight: 700; color: var(--sub); margin-left: 1px; }
-.trend-stat-key { font-size: 10px; color: var(--sub); margin-top: 2px; }
+.trend-stat-val small { font-size: 12px; font-weight: 700; color: var(--sub); margin-left: 1px; }
+.trend-stat-key { font-size: 11px; color: var(--sub); margin-top: 2px; }
 .trend-chart { display: flex; align-items: flex-end; gap: 6px; height: 132px; }
 .trend-col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; }
-.trend-val { font-size: 9px; color: var(--sub); min-height: 12px; line-height: 1; white-space: nowrap; }
+.trend-val { font-size: 11px; color: var(--sub); min-height: 12px; line-height: 1; white-space: nowrap; }
 .trend-stack { width: 100%; max-width: 30px; height: 88px; display: flex; flex-direction: column-reverse; justify-content: flex-start; }
 .trend-seg { width: 100%; min-height: 2px; }
 .trend-seg:last-child { border-radius: 4px 4px 0 0; }
-.trend-label { font-size: 10px; color: var(--sub); white-space: nowrap; }
+.trend-label { font-size: 11px; color: var(--sub); white-space: nowrap; }
 .trend-col.future { opacity: 0.35; }
-.trend-col.current .trend-label { color: var(--orange); font-weight: 700; }
-.trend-col.current .trend-val { color: var(--orange); font-weight: 700; }
+.trend-col.current .trend-label { color: var(--orange-text); font-weight: 700; }
+.trend-col.current .trend-val { color: var(--orange-text); font-weight: 700; }
 .trend-compare { font-size: 12px; color: var(--sub); margin-top: 10px; text-align: center; }
 .trend-compare strong { font-family: 'Nunito', sans-serif; font-weight: 900; }
-.trend-compare .up { color: #16a34a; }
-.trend-compare .down { color: var(--red); }
+.trend-compare .up { color: #15803d; }
+.trend-compare .down { color: var(--red-text); }
 
 /* ─── リマインドのバナー・スイッチ ─── */
 .alert-banner-btn {
@@ -946,6 +986,8 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
   --red-light: #3a1818;
   --blue-light: #14253f;
   --shadow-card: 0 1px 4px rgba(0,0,0,0.45);
+  --orange-text: #fb923c;
+  --red-text: #f87171;
 }
 :root[data-theme="dark"] header { background: rgba(20,17,14,0.92); }
 :root[data-theme="dark"] nav    { background: rgba(20,17,14,0.95); }
@@ -1106,6 +1148,7 @@ try {
         <div class="hero-card" id="heroCard"></div>
         <div class="daily-banner" id="dailyBanner"></div>
       </div>
+      <div id="quickLog"></div>
       <div id="reminderBanners"></div>
       <div id="alertBanners"></div>
       <div id="returnSection"></div>
@@ -1303,7 +1346,7 @@ try {
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">資格カタログ</span>
-          <span style="font-size:11px;color:var(--sub);">2026年02月版</span>
+          <span style="font-size:12px;color:var(--sub);">2026年02月版</span>
         </div>
       </div>
       <div class="catalog-search">
@@ -1725,6 +1768,7 @@ function renderCertTabs() {
 
 function switchHeroExam(examId) {
   state.ui.heroExamId = examId;
+  _logExamId = examId; // 記録フォームもこの試験に合わせる
   saveState();
   renderCertTabs();
   renderHero();
@@ -1798,7 +1842,7 @@ function renderHero() {
         <div class="hero-cert-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ${renderCertBadge(getExamCertEntry(exam))}<br><span style="font-weight:500;opacity:0.8;font-size:12px;">試験日 ${formatDate(exam.examDate)}</span></div>
         <div style="text-align:right;flex-shrink:0;margin-left:8px;">
           <div style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;line-height:1;">${streakEmoji} ${streak}</div>
-          <div style="font-size:10px;opacity:0.8;">日連続</div>
+          <div style="font-size:11px;opacity:0.8;">日連続</div>
         </div>
       </div>
       <div class="hero-days-left" style="font-size:36px;padding:8px 0;">試験終了</div>
@@ -1827,7 +1871,7 @@ function renderHero() {
       <div class="hero-cert-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ${renderCertBadge(getExamCertEntry(exam))}<br><span style="font-weight:500;opacity:0.8;font-size:12px;">試験日 ${formatDate(exam.examDate)}</span></div>
       <div style="text-align:right;flex-shrink:0;margin-left:8px;">
         <div style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;line-height:1;">${streakEmoji} ${streak}</div>
-        <div style="font-size:10px;opacity:0.8;">日連続</div>
+        <div style="font-size:11px;opacity:0.8;">日連続</div>
       </div>
     </div>
     <div class="hero-days-left">${days}</div>
@@ -1901,6 +1945,75 @@ function renderDailyBanner() {
     </div>`;
 }
 
+// ─── Render: 今日の記録（ホームのショートカット） ──────────
+function renderQuickLog() {
+  const el = document.getElementById('quickLog');
+  if (!el) return;
+  const exam = getHeroExam();
+  if (!exam || daysUntil(exam.examDate) < 0) { el.innerHTML = ''; return; } // 試験が終わっていれば出さない
+  const today = localDateStr();
+  const todayH = state.logs.filter(l => l.examId === exam.id && l.date === today).reduce((t, l) => t + l.hours, 0);
+  let timerRunning = false;
+  try { timerRunning = !!JSON.parse(localStorage.getItem('certdash_timer'))?.running; } catch (e) {}
+  el.innerHTML = `
+    <div class="quick-card">
+      <div class="quick-head">
+        <div style="min-width:0;">
+          <div class="quick-title">今日の記録</div>
+          <div class="quick-sub">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)} ・ 今日 <strong>${todayH.toFixed(1)}h</strong></div>
+        </div>
+        <button class="quick-timer tappable" type="button" data-quick="timer">⏱ ${timerRunning ? '計測中' : 'タイマー'}</button>
+      </div>
+      <div class="quick-chips">
+        <button class="quick-chip tappable" type="button" data-quick-add="0.5">＋0.5h</button>
+        <button class="quick-chip tappable" type="button" data-quick-add="1">＋1h</button>
+        <button class="quick-chip tappable" type="button" data-quick-add="2">＋2h</button>
+        <button class="quick-chip more tappable" type="button" data-quick="more">詳しく</button>
+      </div>
+    </div>`;
+}
+
+// 1タップで今日の学習を記録する。同じ試験・今日・メモなしの記録があれば加算して、履歴を増やしすぎない
+function quickAddLog(hours) {
+  const exam = getHeroExam();
+  if (!exam) return;
+  const today = localDateStr();
+  const v = validateLogInput({ examId: exam.id, hours, date: today });
+  if (v.error) { showToast('⚠️ ' + v.error); return; }
+  if (v.warnings.length && !confirm(v.warnings.join('\n') + '\nこのまま記録しますか？')) return;
+
+  const existing = state.logs.find(l => l.examId === exam.id && l.date === today && !l.note);
+  let undo;
+  if (existing && existing.hours + hours <= 12) {
+    const prevHours = existing.hours, prevUpdated = existing._updatedAt;
+    existing.hours = Math.round((existing.hours + hours) * 10) / 10;
+    existing._updatedAt = Date.now();
+    undo = () => { existing.hours = prevHours; existing._updatedAt = Date.now(); };
+  } else {
+    const log = { id: newId(), examId: exam.id, hours, note: '', date: today, ts: Date.now(), _updatedAt: Date.now() };
+    state.logs.push(log);
+    undo = () => {
+      state.logs = state.logs.filter(l => l.id !== log.id);
+      recordDeletion('logs', log.id);
+    };
+  }
+  updateStreak();
+  state.ui.historyPage = 1;
+  saveState();
+  haptic();
+  render();
+  showUndoToast(`${hours}時間を記録しました`, () => {
+    undo(); updateStreak(); saveState(); haptic(); render();
+  }, 5000);
+}
+
+document.getElementById('quickLog').addEventListener('click', e => {
+  const add = e.target.closest('[data-quick-add]');
+  if (add) { quickAddLog(parseFloat(add.dataset.quickAdd)); return; }
+  const go = e.target.closest('[data-quick]');
+  if (go) showPage('log'); // タイマー・詳しい入力は記録タブ
+});
+
 // ─── Render: Onboarding ────────────────────────────────────
 function renderOnboarding() {
   const banner = document.getElementById('onboardBanner');
@@ -1971,14 +2084,17 @@ function renderGoals() {
 }
 
 // ─── Render: Log select ────────────────────────────────────
+// 記録フォームで選ぶ試験：手動で選んだものを優先し、未選択ならホームで選択中の試験にする
+let _logExamId = null;
 function renderLogCertSelect() {
   const sel = document.getElementById('logCert');
   if (!sel) return;
-  const cur = sel.value;
+  const target = state.exams.some(e => e.id === _logExamId) ? _logExamId : (getHeroExam()?.id || '');
   sel.innerHTML = state.exams.map(e =>
-    `<option value="${escapeHtml(e.id)}"${e.id === cur ? ' selected' : ''}>${escapeHtml(e.emoji)} ${escapeHtml(e.name)}</option>`
+    `<option value="${escapeHtml(e.id)}"${e.id === target ? ' selected' : ''}>${escapeHtml(e.emoji)} ${escapeHtml(e.name)}</option>`
   ).join('');
 }
+document.getElementById('logCert').addEventListener('change', e => { _logExamId = e.target.value; });
 
 // ─── Render: History ───────────────────────────────────────
 function renderHistory() {
@@ -2116,7 +2232,7 @@ function renderSettings() {
       ${logCount > 0 ? `<div style="padding:8px 16px 12px;font-size:12px;color:var(--sub);">📝 学習記録 ${logCount}件</div>` : ''}
       <div class="link-section-head">
         <span class="link-section-title">🔗 問題集・参考サイト</span>
-        <span style="font-size:11px;color:var(--sub);">${(exam.links||[]).length} / ${MAX_LINKS}件</span>
+        <span style="font-size:12px;color:var(--sub);">${(exam.links||[]).length} / ${MAX_LINKS}件</span>
       </div>
       <div class="link-list" id="linkList_${escapeHtml(exam.id)}">
         ${(exam.links||[]).map(l => `
@@ -2134,12 +2250,12 @@ function renderSettings() {
       </div>
       <div class="add-link-row">
         <div class="input-group" style="flex:1.2;">
-          <label class="input-label-text" style="font-size:11px;" for="newLinkLabel_${escapeHtml(exam.id)}">名前</label>
+          <label class="input-label-text" style="font-size:12px;" for="newLinkLabel_${escapeHtml(exam.id)}">名前</label>
           <input class="input-field" type="text" id="newLinkLabel_${escapeHtml(exam.id)}"
             placeholder="過去問道場" maxlength="20">
         </div>
         <div class="input-group" style="flex:2;">
-          <label class="input-label-text" style="font-size:11px;" for="newLinkUrl_${escapeHtml(exam.id)}">URL（https://）</label>
+          <label class="input-label-text" style="font-size:12px;" for="newLinkUrl_${escapeHtml(exam.id)}">URL（https://）</label>
           <input class="input-field" type="url" id="newLinkUrl_${escapeHtml(exam.id)}"
             placeholder="https://...">
         </div>
@@ -2809,6 +2925,7 @@ function render() {
     renderCertTabs();
     renderHero();
     renderDailyBanner();
+    renderQuickLog();
     renderReminders();
     renderAlertBanners();
     renderReturnSection();
@@ -3360,6 +3477,8 @@ function showPage(page) {
     isActive ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current');
   });
   render();
+  window.scrollTo(0, 0); // 前のタブのスクロール位置を引き継がない
+  document.querySelector('main')?.scrollTo?.(0, 0);
 }
 
 // ─── Toast ─────────────────────────────────────────────────
@@ -3470,6 +3589,7 @@ function renderTrend() {
   const rangeName = _trendMode === 'day' ? '今週の合計'
                   : _trendMode === 'month' ? `${buckets.length}か月の合計` : `${buckets.length}週間の合計`;
   const avg = days.size ? rangeTotal / days.size : 0;
+  chart.setAttribute('aria-label', `学習時間の推移。${rangeName} ${rangeTotal.toFixed(1)}時間、学習した日 ${days.size}日`);
   document.getElementById('trendStats').innerHTML = `
     <div class="trend-stat"><div class="trend-stat-val">${rangeTotal.toFixed(1)}<small>h</small></div><div class="trend-stat-key">${rangeName}</div></div>
     <div class="trend-stat"><div class="trend-stat-val">${days.size}<small>日</small></div><div class="trend-stat-key">学習した日</div></div>
