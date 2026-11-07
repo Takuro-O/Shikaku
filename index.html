@@ -681,6 +681,19 @@ nav {
   color: var(--orange);
 }
 
+.catalog-options {
+  display: flex; gap: 8px; padding: 0 16px 12px; align-items: center; flex-wrap: wrap;
+}
+.catalog-sort {
+  flex-shrink: 0; min-height: 44px; padding: 0 12px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--sub);
+  font-size: 12px; font-weight: 700; font-family: inherit;
+}
+.catalog-clear {
+  background: none; border: none; color: var(--orange);
+  font-size: 12px; font-weight: 700; min-height: 44px; padding: 0 6px;
+}
 .catalog-result-count {
   padding: 0 16px 8px;
   font-size: 12px; color: var(--sub);
@@ -1299,6 +1312,7 @@ try {
       </div>
       <div class="catalog-filters" id="catalogProgramFilters"></div>
       <div class="catalog-filters" id="catalogGroupFilters"></div>
+      <div class="catalog-options" id="catalogOptions"></div>
       <div class="catalog-result-count" id="catalogResultCount"></div>
       <div class="catalog-list" id="catalogList"></div>
     </div>
@@ -1726,16 +1740,23 @@ function checkAlerts(entry, today = new Date()) {
   return alerts;
 }
 
-// 名前で検索（部分一致）
+// 検索用の正規化：全角→半角・大文字→小文字にそろえ、ハイフン・空白・中黒を無視する
+// （「AZ 400」「az-400」「ＡＺ４００」のどれでも「AZ-400」に一致させるため）
+function normalizeSearchText(s) {
+  return String(s || '').normalize('NFKC').toLowerCase().replace(/[\s\-‐‑–—−_・]/g, '');
+}
+
+// 名前で検索（空白で区切った語がすべて含まれるものに一致）
 function searchCertDb(query, filters = {}) {
-  const q = (query || '').toLowerCase().trim();
+  const tokens = String(query || '').normalize('NFKC').toLowerCase()
+    .split(/\s+/).map(normalizeSearchText).filter(Boolean);
   return CERT_DB.filter(c => {
     if (filters.program && c.program !== filters.program) return false;
     if (filters.group   && c.group   !== filters.group)   return false;
     if (filters.series  && c.series  !== filters.series)  return false;
-    if (!q) return true;
-    const text = `${c.name} ${c.code || ''} ${c.series}`.toLowerCase();
-    return text.includes(q);
+    if (!tokens.length) return true;
+    const text = normalizeSearchText(`${c.name} ${c.code || ''} ${c.series}`);
+    return tokens.every(t => text.includes(t));
   });
 }
 
@@ -2830,7 +2851,7 @@ function applyCertPick(dbId) {
 }
 
 // ─── Render: カタログページ ──────────────────────────────
-let _catalogState = { q: '', program: '', group: '' };
+let _catalogState = { q: '', program: '', group: '', hideOwned: false, sort: '' };
 function renderCatalogFilters() {
   const programs = [
     { id: '',        label: 'すべて' },
@@ -2865,12 +2886,46 @@ function renderCatalogFilters() {
     `<button class="filter-chip tappable${_catalogState.group === g.id ? ' active' : ''}" data-grp="${escapeHtml(g.id)}">${escapeHtml(g.label)}</button>`
   ).join('');
 }
+function catalogHasActiveFilter() {
+  const c = _catalogState;
+  return !!(c.q.trim() || c.program || c.group || c.hideOwned || c.sort);
+}
+function renderCatalogOptions() {
+  const el = document.getElementById('catalogOptions');
+  if (!el) return;
+  const sorts = [
+    { id: '',       label: '標準順' },
+    { id: 'amount', label: '手当が多い順' },
+    { id: 'name',   label: '名前順' },
+  ];
+  el.innerHTML = `
+    <button class="filter-chip tappable${_catalogState.hideOwned ? ' active' : ''}" type="button" data-opt="hideOwned" aria-pressed="${_catalogState.hideOwned}">保有済みを隠す</button>
+    <select class="catalog-sort" id="catalogSort" aria-label="並び順">
+      ${sorts.map(o => `<option value="${o.id}"${_catalogState.sort === o.id ? ' selected' : ''}>${o.label}</option>`).join('')}
+    </select>
+    ${catalogHasActiveFilter() ? '<button class="catalog-clear tappable" type="button" data-opt="clear">クリア</button>' : ''}`;
+}
+// 並べ替え用：合格時にもらえる額（月額は5年分に換算して一時金と比べる）
+function catalogAmount(c) { return calcReturn(c).fiveYear || 0; }
+
 function renderCatalogList() {
-  const results = searchCertDb(_catalogState.q, {
+  let results = searchCertDb(_catalogState.q, {
     program: _catalogState.program || undefined,
     group:   _catalogState.group   || undefined,
   });
-  document.getElementById('catalogResultCount').innerHTML = `<strong>${results.length}</strong> 件の資格`;
+  const matched = results.length;
+  if (_catalogState.hideOwned) {
+    const owned = new Set(state.owned.map(o => o.dbId));
+    results = results.filter(c => !owned.has(c.dbId));
+  }
+  if (_catalogState.sort === 'amount') {
+    results = [...results].sort((a, b) => catalogAmount(b) - catalogAmount(a) || a.name.localeCompare(b.name, 'ja'));
+  } else if (_catalogState.sort === 'name') {
+    results = [...results].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  }
+  const hidden = matched - results.length;
+  document.getElementById('catalogResultCount').innerHTML =
+    `<strong>${results.length}</strong> 件の資格${hidden > 0 ? `（保有済み${hidden}件を除く）` : ''}`;
 
   const list = document.getElementById('catalogList');
   if (!results.length) {
@@ -2910,6 +2965,7 @@ function renderCatalogList() {
 }
 function renderCatalog() {
   renderCatalogFilters();
+  renderCatalogOptions();
   renderCatalogList();
 }
 
@@ -2923,6 +2979,7 @@ function bindCatalogEvents() {
       clearTimeout(timer);
       timer = setTimeout(() => {
         _catalogState.q = input.value;
+        renderCatalogOptions();
         renderCatalogList();
       }, 200);
     });
@@ -2949,6 +3006,30 @@ function bindCatalogEvents() {
       _catalogState.group = btn.dataset.grp;
       renderCatalogList();
       renderCatalogFilters();
+      renderCatalogOptions();
+    });
+  }
+  // 委譲：保有済みを隠す／並び順／クリア
+  const op = document.getElementById('catalogOptions');
+  if (op && !op._bound) {
+    op._bound = true;
+    op.addEventListener('click', e => {
+      const btn = e.target.closest('[data-opt]');
+      if (!btn) return;
+      if (btn.dataset.opt === 'hideOwned') {
+        _catalogState.hideOwned = !_catalogState.hideOwned;
+      } else if (btn.dataset.opt === 'clear') {
+        _catalogState = { q: '', program: '', group: '', hideOwned: false, sort: '' };
+        const input = document.getElementById('catalogSearchInput');
+        if (input) input.value = '';
+      }
+      renderCatalog();
+    });
+    op.addEventListener('change', e => {
+      if (e.target.id !== 'catalogSort') return;
+      _catalogState.sort = e.target.value;
+      renderCatalogOptions();
+      renderCatalogList();
     });
   }
   // 委譲：カタログアイテムのアクション
