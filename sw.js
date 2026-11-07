@@ -2,10 +2,10 @@
 // - アプリ本体(HTML等)は「ネット優先・失敗時にキャッシュ」：更新は常に最新を取り、オフライン時だけ保存済みを使う
 // - フォント／Firebase SDK(CDN)は「キャッシュ優先＋裏で更新」：2回目以降はオフラインでも動く
 // - Firestore／認証のAPI通信には一切介入しない（同期の整合性を壊さないため）
-const VERSION = 'v1';
+const VERSION = 'v2';
 const APP_CACHE = 'shikaku-app-' + VERSION;
 const CDN_CACHE = 'shikaku-cdn-' + VERSION;
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+const APP_SHELL = ['./', './index.html', './cert-db.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'www.gstatic.com'];
 
 self.addEventListener('install', event => {
