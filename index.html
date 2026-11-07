@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#fff7ed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="合格ナビ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>合格ダッシュボード</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -86,6 +91,7 @@ header {
 .sync-badge.synced   { background: var(--green-light); color: #16a34a; }
 .sync-badge.error    { background: var(--red-light); color: var(--red); }
 .sync-badge.offline  { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
+.sync-badge.signedout { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
 .header-date {
   font-size: 13px; color: var(--sub);
   background: var(--orange-light);
@@ -852,6 +858,8 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 try {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
   const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+  const { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut } =
+    await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
 
   const firebaseConfig = {
     apiKey: "AIzaSyB5XG8wYcRo5u48f3U1cyeZwcfYuiIF9Sc",
@@ -864,13 +872,53 @@ try {
 
   const _app = initializeApp(firebaseConfig);
   const _db  = getFirestore(_app);
-  const _ref = doc(_db, 'users', 'default');
+  const _auth = getAuth(_app);
+
+  // ─── 認証（Googleログイン） ───────────────────────────────
+  // 以前は全員が共通の固定ドキュメント(users/default)を読み書きしていたため、
+  // URLを知っていれば誰でも他人のデータを閲覧・上書きできた。
+  // ログインしたユーザー自身のuid配下(users/{uid})だけを読み書きするように変更する。
+  const _provider = new GoogleAuthProvider();
+  const _userRef = () => _auth.currentUser ? doc(_db, 'users', _auth.currentUser.uid) : null;
+
+  window._fsUser = () => {
+    const u = _auth.currentUser;
+    return u ? { uid: u.uid, name: u.displayName || '', email: u.email || '' } : null;
+  };
+  window._fsSignIn = async () => {
+    try {
+      await signInWithPopup(_auth, _provider);
+      return { ok: true };
+    } catch (e) {
+      // ポップアップがブロックされる環境（一部のスマホブラウザ等）ではリダイレクト方式に切り替える
+      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) {
+        try { await signInWithRedirect(_auth, _provider); return { ok: true, redirect: true }; } catch (e2) { e = e2; }
+      }
+      if (e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) {
+        return { ok: false, cancelled: true };
+      }
+      console.warn('Sign-in error:', e);
+      return { ok: false, code: e && e.code || 'unknown' };
+    }
+  };
+  window._fsSignOut = async () => {
+    try { await signOut(_auth); return true; } catch (e) { console.warn('Sign-out error:', e); return false; }
+  };
 
   // Firestoreから読み込み → グローバルに公開
+  // 未ログインのときは何も読まない（null）。
+  // 初回ログイン時にusers/{uid}がまだ無ければ、旧データ(users/default)を一度だけ移行元として読む。
   window._fsLoad = async () => {
+    const ref = _userRef();
+    if (!ref) return null;
     try {
-      const snap = await getDoc(_ref);
-      return snap.exists() ? snap.data().state : null;
+      const snap = await getDoc(ref);
+      if (snap.exists()) return snap.data().state;
+      try {
+        const legacy = await getDoc(doc(_db, 'users', 'default'));
+        if (legacy.exists()) return legacy.data().state;
+      } catch (e) { /* 旧データが読めない（ルール変更後など）場合は無視 */ }
+      return null;
     } catch(e) {
       console.warn('Firestore load error:', e);
       return null;
@@ -879,8 +927,10 @@ try {
 
   // Firestoreに保存
   window._fsSave = async (stateJson) => {
+    const ref = _userRef();
+    if (!ref) return false;
     try {
-      await setDoc(_ref, { state: stateJson, updatedAt: Date.now() });
+      await setDoc(ref, { state: stateJson, updatedAt: Date.now() });
       return true;
     } catch(e) {
       console.warn('Firestore save error:', e);
@@ -888,9 +938,17 @@ try {
     }
   };
 
-  // メインスクリプト側は「固定ms待てば読み込み終わっているはず」という決め打ちの代わりに、
-  // このイベントを待ってから初回同期を始められる（回線が遅くても取りこぼさない）。
-  window.dispatchEvent(new CustomEvent('firebase-ready'));
+  // ログイン状態が確定／変化したらメインスクリプトへ通知する。
+  // 初回の通知（復元されたログイン状態の確定）をもって「準備完了」とする。
+  let _authNotified = false;
+  onAuthStateChanged(_auth, () => {
+    if (!_authNotified) {
+      _authNotified = true;
+      window.dispatchEvent(new CustomEvent('firebase-ready'));
+    } else {
+      window.dispatchEvent(new CustomEvent('auth-changed'));
+    }
+  });
 } catch (e) {
   // CDNブロック・ネットワーク断などでモジュール自体の読み込みに失敗した場合も、
   // メインスクリプトがフォールバックのタイムアウトを待たずに「オフライン」と判定できるようにする。
@@ -980,6 +1038,14 @@ try {
 
     <!-- ページ：設定 -->
     <div id="page-settings" class="page">
+      <!-- アカウント（Googleログイン／クラウド同期） -->
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">アカウント</span>
+        </div>
+      </div>
+      <div class="settings-card" id="accountCard"></div>
+
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">試験を管理</span>
@@ -1620,6 +1686,7 @@ let _fsSavePending  = false;
 
 async function pushToFirestore() {
   if (typeof window._fsSave !== 'function') { setSyncBadge('offline'); return; }
+  if (!window._fsUser?.()) { setSyncBadge('signedout'); setTimeout(() => setSyncBadge(''), 3000); return; } // 未ログイン：ローカル保存のみ
   if (_fsSaveInFlight) { _fsSavePending = true; return; }
   _fsSaveInFlight = true;
   setSyncBadge('syncing');
@@ -1656,6 +1723,7 @@ function setSyncBadge(status) {
   el.textContent = status === 'syncing' ? '同期中…' :
                    status === 'synced'  ? '✓ 同期済み' :
                    status === 'error'   ? '同期失敗' :
+                   status === 'signedout' ? '未ログイン' :
                    status === 'offline' ? 'オフライン' : '';
 }
 
@@ -1743,8 +1811,17 @@ function mergeStates(localRaw, remoteRaw) {
 async function initFirestore() {
   setSyncBadge('syncing');
   if (typeof window._fsLoad !== 'function') { setSyncBadge('offline'); return; }
+  if (!window._fsUser?.()) {
+    // 未ログイン：ローカルのみで動作する。設定タブからログインすると同期が始まる
+    setSyncBadge('signedout');
+    setTimeout(() => setSyncBadge(''), 3000);
+    return;
+  }
   try {
     const remote = await window._fsLoad();
+    if (!remote && state._ts) {
+      saveState(); // 新規アカウント：端末のデータをそのままクラウドへ
+    }
     if (remote) {
       const remoteState = migrateState(JSON.parse(remote));
       const hasLocalHistory = !!state._ts; // ローカルで一度でも保存済み＝編集履歴があり得る
@@ -3505,12 +3582,74 @@ function startInitFirestoreOnce() {
   if (_initFirestoreStarted) return;
   _initFirestoreStarted = true;
   initFirestore();
+  renderAccount();
 }
 window.addEventListener('firebase-ready', startInitFirestoreOnce);
-window.addEventListener('firebase-failed', startInitFirestoreOnce); // 失敗時もオフライン判定させるため即座に呼ぶ
+window.addEventListener('firebase-failed', () => { startInitFirestoreOnce(); renderAccount(); }); // 失敗時もオフライン判定させるため即座に呼ぶ
+
+// ─── アカウント（Googleログイン） ──────────────────────────
+let _signingIn = false;
+function renderAccount() {
+  const el = document.getElementById('accountCard');
+  if (!el) return;
+  if (typeof window._fsUser !== 'function') {
+    el.innerHTML = `<div class="settings-row"><div>
+      <div class="settings-label">オフライン</div>
+      <div class="settings-sub">クラウドに接続できません。データはこの端末にのみ保存されます</div>
+    </div></div>`;
+    return;
+  }
+  const user = window._fsUser();
+  if (user) {
+    el.innerHTML = `<div class="settings-row">
+      <div style="min-width:0;">
+        <div class="settings-label">☁️ ログイン中</div>
+        <div class="settings-sub" style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(user.email || user.name || '')}</div>
+        <div class="settings-sub">データはこのアカウントに同期されます</div>
+      </div>
+      <button class="btn-db-pick tappable" type="button" data-account="signout">ログアウト</button>
+    </div>`;
+  } else {
+    el.innerHTML = `<div class="settings-row">
+      <div>
+        <div class="settings-label">未ログイン</div>
+        <div class="settings-sub">Googleでログインすると、データが自分専用に保存され、端末間で同期されます</div>
+      </div>
+      <button class="btn-db-pick tappable" type="button" data-account="signin" ${_signingIn ? 'disabled' : ''}>ログイン</button>
+    </div>`;
+  }
+}
+document.getElementById('accountCard').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-account]');
+  if (!btn) return;
+  if (btn.dataset.account === 'signin') {
+    if (_signingIn) return;
+    _signingIn = true; renderAccount();
+    const r = await window._fsSignIn();
+    _signingIn = false;
+    if (!r.ok && !r.cancelled) showToast('⚠️ ログインに失敗しました（' + (r.code || 'error') + '）');
+    renderAccount();
+  } else if (btn.dataset.account === 'signout') {
+    const ok = await window._fsSignOut();
+    showToast(ok ? 'ログアウトしました（この端末のデータは残ります）' : '⚠️ ログアウトに失敗しました');
+    renderAccount();
+  }
+});
+// ログイン／ログアウトが起きたら、画面を更新して同期をやり直す
+window.addEventListener('auth-changed', () => {
+  renderAccount();
+  if (window._fsUser?.()) initFirestore(); else setSyncBadge('signedout');
+});
 window.addEventListener('load', () => {
   setTimeout(startInitFirestoreOnce, 2000); // 上記イベントが来なかった場合の保険
 });
+
+// PWA：Service Worker登録（ホーム画面追加・オフライン起動用）。失敗してもアプリ本体には影響させない
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed:', e));
+  });
+}
 </script>
 </body>
 </html>
