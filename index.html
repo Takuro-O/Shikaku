@@ -1117,9 +1117,8 @@ try {
             <button class="timer-btn main tappable" type="button" id="timerToggle">開始</button>
             <button class="timer-btn tappable" type="button" id="timerReset">リセット</button>
           </div>
-          <button class="timer-apply tappable" type="button" id="timerApply" disabled>この時間を下のフォームに入力</button>
-          <div class="timer-hint">画面を閉じても計測は続きます</div>
-        </div>
+          <button class="timer-apply tappable" type="button" id="timerApply" disabled>記録フォームに入力</button>
+          </div>
         <div class="log-card">
           <div class="input-group">
             <label class="input-label-text" for="logCert">試験</label>
@@ -1140,7 +1139,7 @@ try {
             <label class="input-label-text" for="logNote">メモ（任意）</label>
             <input class="input-field" type="text" id="logNote" placeholder="例：過去問10問、テキスト3章">
           </div>
-          <button class="btn-primary tappable" onclick="addLog()">記録する ＋</button>
+          <button class="btn-primary tappable" onclick="addLog()">記録する</button>
         </div>
       </div>
 
@@ -1187,7 +1186,7 @@ try {
         <div class="settings-row">
           <div>
             <div class="settings-label">学習の記録リマインド</div>
-            <div class="settings-sub">指定時刻を過ぎても今日の記録がないとき、ホームでお知らせします</div>
+            <div class="settings-sub">未記録のとき、アプリを開くとホームに表示します</div>
           </div>
           <input class="switch" type="checkbox" id="remDailyOn" aria-label="学習の記録リマインド">
         </div>
@@ -1198,12 +1197,9 @@ try {
         <div class="settings-row">
           <div>
             <div class="settings-label">試験直前のお知らせ</div>
-            <div class="settings-sub">試験日の7日前から、ホームにカウントダウンを表示します</div>
+            <div class="settings-sub">7日前から、ホームに表示します</div>
           </div>
           <input class="switch" type="checkbox" id="remExamOn" aria-label="試験直前のお知らせ">
-        </div>
-        <div class="settings-row">
-          <div class="settings-sub">アプリを開いたときに表示されます（端末ごとの設定）</div>
         </div>
       </div>
 
@@ -1217,7 +1213,6 @@ try {
         <div class="settings-row">
           <div>
             <div class="settings-label">テーマ</div>
-            <div class="settings-sub">この端末のみに保存されます</div>
           </div>
           <div class="theme-seg" id="themeSeg">
             <button type="button" data-theme-pref="auto">自動</button>
@@ -1243,7 +1238,7 @@ try {
         <div class="input-group">
           <label class="input-label-text">資格を選ぶ</label>
           <div class="db-pick-row">
-            <span class="db-pick-badge empty" id="newExamDbBadge">タップして資格DBから選んでください</span>
+            <span class="db-pick-badge empty" id="newExamDbBadge">資格リストから選んでください</span>
             <button class="btn-db-pick tappable" type="button" onclick="openNewExamPicker()">選ぶ</button>
           </div>
         </div>
@@ -1261,7 +1256,7 @@ try {
           <label class="input-label-text" for="newExamWeekly">週間目標（時間）</label>
           <input class="input-field" type="number" id="newExamWeekly" min="1" max="60" placeholder="10" inputmode="numeric">
         </div>
-        <button class="btn-add-exam tappable" onclick="addExam()">＋ この試験を追加する</button>
+        <button class="btn-add-exam tappable" onclick="addExam()">試験を追加</button>
       </div>
 
       <!-- データ管理（バックアップ） -->
@@ -1272,14 +1267,14 @@ try {
         <div class="settings-row">
           <div>
             <div class="settings-label">バックアップを保存</div>
-            <div class="settings-sub">記録をJSONファイルとして端末に保存します</div>
+            <div class="settings-sub">JSONファイルに保存します</div>
           </div>
           <button class="btn-db-pick tappable" type="button" onclick="exportData()">保存</button>
         </div>
         <div class="settings-row">
           <div>
             <div class="settings-label">バックアップを復元</div>
-            <div class="settings-sub">保存したJSONファイルから読み込みます</div>
+            <div class="settings-sub">JSONファイルから読み込みます</div>
           </div>
           <button class="btn-db-pick tappable" type="button" onclick="triggerImport()">選ぶ</button>
         </div>
@@ -1313,9 +1308,9 @@ try {
         </div>
       </div>
       <div id="ownedSummary"></div>
-      <div class="section-head"><span class="section-title">取得済み資格</span></div>
+      <div class="section-head"><span class="section-title">保有資格一覧</span></div>
       <div id="ownedList"></div>
-      <button class="owned-add-btn tappable" onclick="showPage('catalog')">＋ カタログから資格を追加する</button>
+      <button class="owned-add-btn tappable" onclick="showPage('catalog')">＋ カタログから追加</button>
     </div>
   </main>
 
@@ -1864,7 +1859,7 @@ async function pushToFirestore() {
   const ok = await window._fsSave(JSON.stringify(state));
   _fsSaveInFlight = false;
   setSyncBadge(ok ? 'synced' : 'error');
-  if (!ok) showToast('⚠️ クラウド同期に失敗しました（ローカルには保存済み）');
+  if (!ok) showToast('⚠️ 同期に失敗しました。この端末には保存済みです');
   setTimeout(() => setSyncBadge(''), 3000);
   if (_fsSavePending) {
     _fsSavePending = false;
@@ -1879,7 +1874,7 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch(e) {
-    if (e.name === 'QuotaExceededError') showToast('⚠️ 保存容量が上限に達しました');
+    if (e.name === 'QuotaExceededError') showToast('⚠️ 保存容量が上限です');
   }
   // Firestoreには1.5秒debounce
   clearTimeout(_saveTimer);
@@ -2002,14 +1997,14 @@ async function initFirestore() {
         state = remoteState;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
         render();
-        showToast('☁️ クラウドからデータを読み込みました');
+        showToast('データを読み込みました');
       } else {
         // 双方に編集履歴があり得る → id単位でマージ（全消し置換を防ぐ）
         state = mergeStates(state, remoteState);
         updateStreak();
         saveState(); // マージ結果をローカル保存＋クラウドへ書き戻して収束させる
         render();
-        showToast('☁️ クラウドのデータと同期しました');
+        showToast('同期しました');
       }
     }
     setSyncBadge('synced');
@@ -2185,7 +2180,7 @@ function renderHero() {
         </div>
       </div>
       <div class="hero-days-left" style="font-size:36px;padding:8px 0;">試験終了</div>
-      <div class="hero-days-label">${Math.abs(days)}日前に試験日が過ぎました — 進捗 ${prog}%</div>
+      <div class="hero-days-label">試験日から${Math.abs(days)}日経過</div>
       <div class="hero-stats">
         <div class="hero-stat">
           <div class="hero-stat-val">${getTotalHours(exam.id).toFixed(1)}<span style="font-size:14px">h</span></div>
@@ -2214,7 +2209,7 @@ function renderHero() {
       </div>
     </div>
     <div class="hero-days-left">${days}</div>
-    <div class="hero-days-label">日後に試験 — 進捗 ${prog}%</div>
+    <div class="hero-days-label">日後に試験</div>
     <div class="hero-stats">
       <div class="hero-stat">
         <div class="hero-stat-val">${remaining.toFixed(1)}<span style="font-size:14px">h</span></div>
@@ -2246,7 +2241,7 @@ function renderDailyBanner() {
       <div class="daily-banner-icon">🏁</div>
       <div class="daily-banner-text">
         <div class="daily-banner-val">試験は終了しました</div>
-        <div class="daily-banner-desc">設定から新しい試験を登録しましょう</div>
+        <div class="daily-banner-desc">新しい試験を追加してください</div>
       </div>`;
     return;
   }
@@ -2255,8 +2250,8 @@ function renderDailyBanner() {
     banner.innerHTML = `
       <div class="daily-banner-icon">📅</div>
       <div class="daily-banner-text">
-        <div class="daily-banner-val">試験当日！</div>
-        <div class="daily-banner-desc">全力で頑張れ！応援しています🎌</div>
+        <div class="daily-banner-val">試験当日</div>
+        <div class="daily-banner-desc">今日が試験日です</div>
       </div>`;
     return;
   }
@@ -2265,22 +2260,22 @@ function renderDailyBanner() {
     banner.innerHTML = `
       <div class="daily-banner-icon">🎉</div>
       <div class="daily-banner-text">
-        <div class="daily-banner-val">目標達成！</div>
-        <div class="daily-banner-desc">必要な学習時間をクリアしました！</div>
+        <div class="daily-banner-val">目標達成</div>
+        <div class="daily-banner-desc">必要な時間に達しました</div>
       </div>`;
     return;
   }
   const d = daily.toFixed(1);
   let cls, icon, desc;
-  if      (daily <= 2) { cls = 'safe';   icon = '😊'; desc = '余裕あり！このペースで続けよう'; }
+  if      (daily <= 2) { cls = 'safe';   icon = '😊'; desc = '余裕があります'; }
   else if (daily <= 4) { cls = 'warn';   icon = '⚡'; desc = '少しペースアップが必要です'; }
-  else                 { cls = 'danger'; icon = '🔥'; desc = '追い込みが必要！集中して！'; }
+  else                 { cls = 'danger'; icon = '🔥'; desc = '追い込みが必要です'; }
   banner.className = `daily-banner ${cls}`;
   banner.innerHTML = `
     <div class="daily-banner-icon">${icon}</div>
     <div class="daily-banner-text">
       <div class="daily-banner-val">${d}h<span style="font-size:14px;font-weight:500;margin-left:4px">/ 日</span></div>
-      <div class="daily-banner-desc">今日から毎日これだけ勉強すれば合格ペース — ${desc}</div>
+      <div class="daily-banner-desc">1日の必要時間 · ${desc}</div>
     </div>`;
 }
 
@@ -2292,13 +2287,13 @@ function renderOnboarding() {
     banner.style.display = 'flex';
     banner.className = 'onboard-banner';
     banner.innerHTML = `
-      <div class="onboard-banner-text">⚙️ まず受験する試験を設定から追加しましょう！</div>
+      <div class="onboard-banner-text">⚙️ 試験を追加してください</div>
       <button class="onboard-banner-btn tappable" onclick="showPage('settings')">設定へ →</button>`;
   } else if (state.logs.length === 0) {
     banner.style.display = 'flex';
     banner.className = 'onboard-banner';
     banner.innerHTML = `
-      <div class="onboard-banner-text">✏️ 記録タブから学習時間を入力してみましょう！</div>
+      <div class="onboard-banner-text">✏️ 学習時間を記録してください</div>
       <button class="onboard-banner-btn tappable" onclick="showPage('log')">記録へ →</button>`;
   } else {
     banner.style.display = 'none';
@@ -2348,7 +2343,7 @@ function renderGoals() {
         <div class="goal-name">${escapeHtml(exam.emoji)} ${escapeHtml(exam.name)}</div>
         <div class="goal-sub">今週 ${week.toFixed(1)}h / 目標 ${goal}h（${ratio}%）</div>
       </div>
-      <span class="goal-badge ${done ? 'done' : 'pend'}">${done ? '🎉 達成！' : `あと ${(goal - week).toFixed(1)}h`}</span>
+      <span class="goal-badge ${done ? 'done' : 'pend'}">${done ? '達成' : `あと ${(goal - week).toFixed(1)}h`}</span>
     </div>`;
   }).join('');
 }
@@ -2383,7 +2378,7 @@ function renderHistory() {
     <div class="empty-state">
       <div class="empty-icon">📖</div>
       <div class="empty-title">まだ記録がありません</div>
-      <div class="empty-desc">上のフォームから学習を記録しよう！</div>
+      <div class="empty-desc">上のフォームから記録できます</div>
     </div>`;
     showMoreWrap.innerHTML = '';
     return;
@@ -2450,11 +2445,11 @@ function renderSettings() {
       </div>
       <div class="settings-row">
         <div>
-          <div class="settings-label">資格DB連携</div>
-          <div class="settings-sub">手当額・期限を自動表示</div>
+          <div class="settings-label">資格リスト</div>
+          <div class="settings-sub">手当額を表示</div>
         </div>
         <button class="btn-link-add tappable" style="height:34px;font-size:12px;" data-open-picker="${escapeHtml(exam.id)}">
-          ${exam.certDbId ? '変更' : '紐付ける'}
+          ${exam.certDbId ? '変更' : '選ぶ'}
         </button>
       </div>
       <div class="settings-row">
@@ -2474,7 +2469,7 @@ function renderSettings() {
         </div>
       </div>
       <div class="settings-row">
-        <div><div class="settings-label">週間目標</div><div class="settings-sub">週に何時間勉強するか</div></div>
+        <div><div class="settings-label">週間目標</div><div class="settings-sub">1週間の目標</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <input class="settings-input" type="number" min="1" max="60"
             id="exam_weekly_${escapeHtml(exam.id)}"
@@ -2530,7 +2525,7 @@ function getExamCertEntry(exam) {
 function renderCertBadge(entry, opts = {}) {
   if (!entry) {
     if (opts.showEmpty) {
-      return `<span class="cert-badge no-cert" title="資格DB未連携">手当未設定</span>`;
+      return `<span class="cert-badge no-cert" title="資格リスト未選択">手当未設定</span>`;
     }
     return '';
   }
@@ -2561,8 +2556,8 @@ function renderReturnSection() {
       <div class="return-card">
         <div class="return-title">💰 合格時のリターン</div>
         <div class="return-no-data">
-          この試験は資格DBに紐付いていません<br>
-          <button class="tappable" data-open-picker="${escapeHtml(exam.id)}">手当情報を選んで紐付ける</button>
+          手当情報が未設定です<br>
+          <button class="tappable" data-open-picker="${escapeHtml(exam.id)}">資格リストから選ぶ</button>
         </div>
       </div>`;
     return;
@@ -2595,7 +2590,7 @@ function renderReturnSection() {
           <span class="val">${fmtMoney(ret.yearly)}</span>
         </div>
         <div class="return-row">
-          <span class="label">${ret.noLimit ? '累計（合格後5年期限 撤廃中🔥）' : '累計（合格日から5年間）'}</span>
+          <span class="label">${ret.noLimit ? '累計（期限なし）' : '累計（5年間）'}</span>
           <span class="val">${fmtMoney(ret.fiveYear)}${ret.noLimit ? '+' : ''}</span>
         </div>
         <div class="return-row">
@@ -2603,7 +2598,7 @@ function renderReturnSection() {
           <span class="val">${escapeHtml(ret.examFee)} ✓</span>
         </div>
       </div>
-      ${ret.noLimit ? '<div class="return-note">🔥 MS特別措置の対象期間中は、通常「合格日から5年間」の支給期限が撤廃されています。</div>' : ''}` ;
+      ${ret.noLimit ? '<div class="return-note">MS特別措置の対象期間中は、5年の支給期限がありません。</div>' : ''}` ;
   } else {
     // D群：受験料のみ（金銭手当なし）
     body = `
@@ -2613,7 +2608,7 @@ function renderReturnSection() {
           <span class="val">会社支給 ✓</span>
         </div>
       </div>
-      <div class="return-note">合格一時金・月額手当はありませんが、受験料は会社が負担します。</div>`;
+      <div class="return-note">手当はなく、受験料のみ会社が負担します。</div>`;
   }
 
   // アラート表示
@@ -2672,7 +2667,7 @@ function renderNewExamDbBadge() {
       : '選択済み';
     badge.classList.remove('empty');
   } else {
-    badge.textContent = '資格DBから選ぶと手当が自動表示されます';
+    badge.textContent = '資格リストから選んでください';
     badge.classList.add('empty');
   }
 }
@@ -2683,8 +2678,8 @@ function openNewExamPicker() {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-sheet tall" onclick="event.stopPropagation()">
-      <div class="modal-title">資格DBから選択</div>
-      <div class="modal-desc">選んだ資格の名前と手当情報が自動入力されます。</div>
+      <div class="modal-title">資格リストから選択</div>
+      <div class="modal-desc">名前と手当情報が自動で入ります。</div>
       <input class="input-field" type="search" id="newExamPickerSearch"
         placeholder="検索（例：基本情報、AZ-900）" style="margin-bottom:12px;" autocomplete="off">
       <div class="cert-pick-list" id="newExamPickerList"></div>
@@ -2725,14 +2720,14 @@ function renderNewExamPickerList(q) {
 
       renderNewExamDbBadge();
       closeModal();
-      showToast(`✓ 「${entry.name}」を選択しました`);
+      showToast(`「${entry.name}」を選択しました`);
     });
   }
   let html = `<div class="cert-pick-item none" data-new-pick="__none__">
     <span class="cert-pick-name">選択を解除</span>
   </div>`;
   if (!results.length) {
-    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格が見つかりません</div>`;
+    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格がありません</div>`;
   } else {
     html += results.map(entry => `
       <div class="cert-pick-item" data-new-pick="${escapeHtml(entry.dbId)}">
@@ -2752,8 +2747,8 @@ function openCertPicker(examId) {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-sheet tall" onclick="event.stopPropagation()">
-      <div class="modal-title">資格DBから選択</div>
-      <div class="modal-desc">この試験を資格データベースに紐付けると、手当額・期限などが自動表示されます。</div>
+      <div class="modal-title">資格リストから選択</div>
+      <div class="modal-desc">選ぶと、手当額と期限が表示されます。</div>
       <input class="input-field" type="search" id="pickerSearch" placeholder="検索（例：基本情報、AZ-400）" style="margin-bottom:12px;" autocomplete="off">
       <div class="cert-pick-list" id="pickerList"></div>
       <div class="modal-actions" style="margin-top:14px;">
@@ -2784,10 +2779,10 @@ function renderPickerList() {
     });
   }
   let html = `<div class="cert-pick-item none" data-pick="__none__">
-    <span class="cert-pick-name">紐付けを解除</span>
+    <span class="cert-pick-name">選択を解除</span>
   </div>`;
   if (!results.length) {
-    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格が見つかりません</div>`;
+    html += `<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px;">該当する資格がありません</div>`;
   } else {
     html += results.map(c => `
       <div class="cert-pick-item" data-pick="${escapeHtml(c.dbId)}">
@@ -2808,9 +2803,9 @@ function applyCertPick(dbId) {
   render();
   if (exam.certDbId) {
     const entry = CERT_DB.find(c => c.dbId === exam.certDbId);
-    showToast(`✅ 「${entry?.name || ''}」を紐付けました`);
+    showToast(`「${entry?.name || ''}」を設定しました`);
   } else {
-    showToast('✅ 紐付けを解除しました');
+    showToast('解除しました');
   }
 }
 
@@ -2863,7 +2858,7 @@ function renderCatalogList() {
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <div class="empty-title">該当する資格がありません</div>
-        <div class="empty-desc">検索ワードやフィルタを変えてみてください</div>
+        <div class="empty-desc">検索条件を変えてください</div>
       </div>`;
     return;
   }
@@ -2884,10 +2879,10 @@ function renderCatalogList() {
       </div>
       <div class="catalog-item-actions">
         <button class="catalog-action-btn tappable" data-cat-add="${escapeHtml(c.dbId)}" ${isLinked ? 'disabled style="opacity:0.5"' : ''}>
-          ${isLinked ? '✓ 学習中' : '＋ 学習中の試験に追加'}
+          ${isLinked ? '✓ 追加済み' : '＋ 試験に追加'}
         </button>
         <button class="catalog-action-btn secondary tappable" data-cat-own="${escapeHtml(c.dbId)}" ${isOwned ? 'disabled style="opacity:0.5"' : ''}>
-          ${isOwned ? '✓ 保有済' : '取得済として登録'}
+          ${isOwned ? '✓ 保有済み' : '＋ 保有に追加'}
         </button>
       </div>
     </div>`;
@@ -2955,7 +2950,7 @@ function bindCatalogEvents() {
 // カタログ→学習中の試験に追加
 function addExamFromCatalog(dbId) {
   if (state.exams.length >= MAX_EXAMS) {
-    showToast(`⚠️ 試験は最大${MAX_EXAMS}件まで登録できます`); return;
+    showToast(`⚠️ 試験は最大${MAX_EXAMS}件までです`); return;
   }
   const entry = CERT_DB.find(c => c.dbId === dbId);
   if (!entry) return;
@@ -2978,7 +2973,7 @@ function addExamFromCatalog(dbId) {
   state.ui.heroExamId = exam.id;
   saveState();
   haptic('heavy');
-  showToast(`✅ 「${entry.name}」を追加しました（試験日・目標は設定で調整してください）`);
+  showToast(`「${entry.name}」を追加しました。試験日を設定してください`);
   showPage('settings');
 }
 
@@ -2996,7 +2991,7 @@ function addOwnedFromCatalog(dbId) {
   saveState();
   haptic();
   renderCatalogList();
-  showToast(`🏆 「${entry.name}」を保有資格に追加しました`);
+  showToast(`「${entry.name}」を保有に追加しました`);
 }
 
 // ─── Render: 保有資格ページ ──────────────────────────────
@@ -3056,7 +3051,7 @@ function renderOwnedList() {
       <div class="empty-state">
         <div class="empty-icon">🏆</div>
         <div class="empty-title">保有資格が未登録です</div>
-        <div class="empty-desc">下のボタンからカタログを開き、取得済みの資格を登録しましょう</div>
+        <div class="empty-desc">カタログから保有資格を追加してください</div>
       </div>`;
     return;
   }
@@ -3066,7 +3061,7 @@ function renderOwnedList() {
       return `<div class="owned-item">
         <div class="owned-item-info">
           <div class="owned-item-name">（不明な資格）</div>
-          <div class="owned-item-meta">DBから削除された可能性があります</div>
+          <div class="owned-item-meta">資格リストから削除された可能性があります</div>
         </div>
         <button class="owned-delete tappable" data-owned-del="${escapeHtml(o.id)}" aria-label="削除">✕</button>
       </div>`;
@@ -3106,7 +3101,7 @@ function deleteOwned(id) {
   saveState();
   haptic();
   renderOwned();
-  showToast('🗑 保有資格から削除しました');
+  showToast('保有から削除しました');
 }
 
 // ─── Main Render ───────────────────────────────────────────
@@ -3146,7 +3141,7 @@ function addLog() {
   const note   = document.getElementById('logNote').value.trim();
   if (!examId)      { showToast('⚠️ 試験を選択してください'); return; }
   if (hours <= 0)   { showToast('⚠️ 時間を入力してください'); return; }
-  if (hours > 12)   { showToast('⚠️ 1回あたり12時間以内で入力してください'); return; }
+  if (hours > 12)   { showToast('⚠️ 12時間以内で入力してください'); return; }
 
   const today   = localDateStr();
   const logDate = document.getElementById('logDate').value || today;
@@ -3169,8 +3164,8 @@ function addLog() {
   haptic('heavy');
   render();
   showToast(trimmed
-    ? `✅ ${hours}時間を記録しました！（保存上限${MAX_LOGS}件のため一番古い記録が削除されました）`
-    : `✅ ${hours}時間を記録しました！`);
+    ? `${hours}時間を記録しました。上限${MAX_LOGS}件のため、古い記録を削除しました`
+    : `${hours}時間を記録しました`);
 }
 
 // ─── Actions: Exam CRUD ────────────────────────────────────
@@ -3179,11 +3174,11 @@ function addExam() {
   const target = parseInt(document.getElementById('newExamTarget').value) || 0;
   const weekly = parseInt(document.getElementById('newExamWeekly').value) || 0;
 
-  if (!_newExamCertDbId) { showToast('⚠️ 資格DBから試験を選んでください'); return; }
+  if (!_newExamCertDbId) { showToast('⚠️ 資格リストから選んでください'); return; }
   if (!date)             { showToast('⚠️ 試験日を入力してください'); return; }
   if (target < 10)       { showToast('⚠️ 目標時間は10時間以上で入力してください'); return; }
   if (weekly < 1)        { showToast('⚠️ 週間目標は1時間以上で入力してください'); return; }
-  if (state.exams.length >= MAX_EXAMS) { showToast(`⚠️ 試験は最大${MAX_EXAMS}件まで登録できます`); return; }
+  if (state.exams.length >= MAX_EXAMS) { showToast(`⚠️ 試験は最大${MAX_EXAMS}件までです`); return; }
 
   const entry = CERT_DB.find(c => c.dbId === _newExamCertDbId);
   const name  = entry?.name || '不明な資格';
@@ -3208,7 +3203,7 @@ function addExam() {
 
   haptic('heavy');
   render();
-  showToast(`✅ 「${name}」を追加しました！`);
+  showToast(`「${name}」を追加しました`);
 }
 
 function updateExamField(examId, field, value) {
@@ -3232,7 +3227,7 @@ function updateExamField(examId, field, value) {
   saveState();
   // ホーム表示中なら即反映
   if (state.ui.currentPage === 'home') render();
-  showToast('✅ 保存しました');
+  showToast('保存しました');
 }
 
 function confirmDeleteExam(examId) {
@@ -3246,8 +3241,8 @@ function confirmDeleteExam(examId) {
     <div class="modal-sheet" onclick="event.stopPropagation()">
       <div class="modal-title">「${escapeHtml(exam.name)}」を削除しますか？</div>
       <div class="modal-desc">${logCount > 0
-        ? `この試験の学習記録 ${logCount}件 もあわせて削除されます。この操作は取り消せません。`
-        : 'この操作は取り消せません。'}</div>
+        ? `記録${logCount}件も削除されます。この操作は元に戻せません。`
+        : 'この操作は元に戻せません。'}</div>
       <div class="modal-actions">
         <button class="modal-btn cancel tappable" onclick="closeModal()">キャンセル</button>
         <button class="modal-btn danger tappable">削除する</button>
@@ -3279,7 +3274,7 @@ function execDeleteExam(examId) {
   closeModal();
   haptic();
   render();
-  showToast(`🗑 「${exam.name}」を削除しました`);
+  showToast(`「${exam.name}」を削除しました`);
 }
 
 // ─── Actions: Link CRUD ───────────────────────────────────
@@ -3297,7 +3292,7 @@ function addLink(examId) {
 
   if (!label)        { showToast('⚠️ 名前を入力してください'); return; }
   if (!url)          { showToast('⚠️ URLを入力してください'); return; }
-  if (!safeUrl(url)) { showToast('⚠️ URLは https:// で始まる形式で入力してください'); return; }
+  if (!safeUrl(url)) { showToast('⚠️ URLは https:// から入力してください'); return; }
 
   exam.links.push({ id: newId(), label, url: safeUrl(url) });
   exam._updatedAt = Date.now();
@@ -3309,7 +3304,7 @@ function addLink(examId) {
   renderSettings();
   // ホームのヒーローも即更新
   if (state.ui.currentPage === 'home') renderHero();
-  showToast(`✅ 「${label}」を追加しました`);
+  showToast(`「${label}」を追加しました`);
 }
 
 function deleteLink(examId, linkId) {
@@ -3323,7 +3318,7 @@ function deleteLink(examId, linkId) {
   haptic();
   renderSettings();
   if (state.ui.currentPage === 'home') renderHero();
-  showToast('🗑 リンクを削除しました');
+  showToast('リンクを削除しました');
 }
 
 // ─── Actions: Log delete（即削除＋5秒間Undo可能） ───────────
@@ -3345,7 +3340,7 @@ function deleteLog(id) {
   render();
   const n = _pendingLogDeletions.length;
   showUndoToast(
-    n > 1 ? `🗑 記録を${n}件削除しました` : '🗑 記録を削除しました',
+    n > 1 ? `記録を${n}件削除しました` : '記録を削除しました',
     undoPendingLogDeletions,
     5000,
     () => { _pendingLogDeletions = []; } // 時間切れでUndo不能になったらキューも空にする
@@ -3367,7 +3362,7 @@ function undoPendingLogDeletions() {
   saveState();
   haptic();
   render();
-  showToast(n > 1 ? `↩️ 記録を${n}件元に戻しました` : '↩️ 記録を元に戻しました');
+  showToast(n > 1 ? `記録を${n}件元に戻しました` : '記録を元に戻しました');
 }
 
 // ─── Actions: Log edit ──────────────────────────────────────
@@ -3426,7 +3421,7 @@ function execEditLog() {
 
   if (!examId)      { showToast('⚠️ 試験を選択してください'); return; }
   if (!(hours > 0)) { showToast('⚠️ 時間を入力してください'); return; }
-  if (hours > 12)   { showToast('⚠️ 1回あたり12時間以内で入力してください'); return; }
+  if (hours > 12)   { showToast('⚠️ 12時間以内で入力してください'); return; }
   if (!date)        { showToast('⚠️ 日付を入力してください'); return; }
 
   log.examId = examId;
@@ -3440,7 +3435,7 @@ function execEditLog() {
   closeModal();
   haptic();
   render();
-  showToast('✅ 記録を更新しました');
+  showToast('記録を更新しました');
 }
 
 function closeModal() {
@@ -3463,7 +3458,7 @@ function exportData() {
     a.remove();
     URL.revokeObjectURL(url);
     haptic();
-    showToast('✅ バックアップファイルを保存しました');
+    showToast('保存しました');
   } catch (e) {
     showToast('⚠️ バックアップの保存に失敗しました');
   }
@@ -3486,17 +3481,17 @@ function handleImportFile(e) {
     try {
       parsed = JSON.parse(ev.target.result);
     } catch {
-      showToast('⚠️ ファイルの読み込みに失敗しました（JSON形式ではありません）');
+      showToast('⚠️ JSONファイルではありません');
       return;
     }
     if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.exams) || !Array.isArray(parsed.logs)) {
-      showToast('⚠️ このファイルは合格ナビのバックアップ形式ではありません');
+      showToast('⚠️ バックアップファイルではありません');
       return;
     }
     _pendingImport = parsed;
     confirmImportModal(parsed);
   };
-  reader.onerror = () => showToast('⚠️ ファイルの読み込みに失敗しました');
+  reader.onerror = () => showToast('⚠️ 読み込みに失敗しました');
   reader.readAsText(file);
 }
 
@@ -3509,7 +3504,7 @@ function confirmImportModal(parsed) {
       <div class="modal-title">バックアップを復元しますか？</div>
       <div class="modal-desc">
         インポート内容：試験 ${parsed.exams.length}件・記録 ${parsed.logs.length}件<br>
-        現在のデータ（試験 ${state.exams.length}件・記録 ${state.logs.length}件）は上書きされます。この操作は取り消せません。
+        現在のデータ（試験 ${state.exams.length}件・記録 ${state.logs.length}件）は上書きされます。この操作は元に戻せません。
       </div>
       <div class="modal-actions">
         <button class="modal-btn cancel tappable" onclick="cancelImport()">キャンセル</button>
@@ -3543,7 +3538,7 @@ function execImport() {
   closeModal();
   haptic('heavy');
   showPage('settings');
-  showToast('✅ バックアップを復元しました');
+  showToast('バックアップを復元しました');
 }
 
 // ─── Navigation ────────────────────────────────────────────
@@ -3708,7 +3703,7 @@ function renderTrend() {
   const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : '';
   const sign = diff > 0 ? '+' : '';
   document.getElementById('trendCompare').innerHTML = rangeTotal === 0
-    ? '記録がたまると、ここに推移が表示されます'
+    ? '記録すると推移が表示されます'
     : `${nameNow} <strong>${curTotal.toFixed(1)}h</strong>（${namePrev}比 <strong class="${cls}">${sign}${diff.toFixed(1)}h</strong>）`;
 }
 
@@ -3758,8 +3753,8 @@ function renderReminders() {
       items.push({
         icon: '🔔', urgency: streak >= 3 ? 'high' : 'mid',
         html: streak > 0
-          ? `今日の学習がまだ記録されていません。<strong>${streak}日連続</strong>が途切れてしまいます`
-          : '今日の学習がまだ記録されていません。少しだけでも進めましょう',
+          ? `今日の記録がありません。<strong>${streak}日連続</strong>が途切れます`
+          : '今日の記録がありません',
         action: '記録する',
       });
     }
@@ -3773,8 +3768,8 @@ function renderReminders() {
       .sort((a, b) => a.days - b.days)
       .forEach(({ e, days }) => {
         const remaining = Math.max(0, e.targetHours - getTotalHours(e.id));
-        const when = days === 0 ? '今日が試験日です。落ち着いて、頑張って！'
-                   : days === 1 ? 'いよいよ明日が試験です'
+        const when = days === 0 ? '今日が試験日です'
+                   : days === 1 ? '明日が試験です'
                    : `試験まであと${days}日`;
         const rest = days > 0 && remaining > 0 ? `（目標まであと${remaining.toFixed(1)}h）` : '';
         items.push({ icon: '🎯', urgency: days <= 3 ? 'high' : 'mid', html: `<strong>${escapeHtml(e.name)}</strong>：${when}${rest}` });
@@ -3891,7 +3886,7 @@ function renderAccount() {
   if (typeof window._fsUser !== 'function') {
     el.innerHTML = `<div class="settings-row"><div>
       <div class="settings-label">オフライン</div>
-      <div class="settings-sub">クラウドに接続できません。データはこの端末にのみ保存されます</div>
+      <div class="settings-sub">接続できません。データはこの端末に保存されます</div>
     </div></div>`;
     return;
   }
@@ -3899,17 +3894,16 @@ function renderAccount() {
   if (user) {
     el.innerHTML = `<div class="settings-row">
       <div style="min-width:0;">
-        <div class="settings-label">☁️ ログイン中</div>
+        <div class="settings-label">ログイン中</div>
         <div class="settings-sub" style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(user.email || user.name || '')}</div>
-        <div class="settings-sub">データはこのアカウントに同期されます</div>
-      </div>
+        </div>
       <button class="btn-db-pick tappable" type="button" data-account="signout">ログアウト</button>
     </div>`;
   } else {
     el.innerHTML = `<div class="settings-row">
       <div>
         <div class="settings-label">未ログイン</div>
-        <div class="settings-sub">Googleでログインすると、データが自分専用に保存され、端末間で同期されます</div>
+        <div class="settings-sub">ログインすると、データが端末間で同期されます</div>
       </div>
       <button class="btn-db-pick tappable" type="button" data-account="signin" ${_signingIn ? 'disabled' : ''}>ログイン</button>
     </div>`;
@@ -3927,7 +3921,7 @@ document.getElementById('accountCard').addEventListener('click', async e => {
     renderAccount();
   } else if (btn.dataset.account === 'signout') {
     const ok = await window._fsSignOut();
-    showToast(ok ? 'ログアウトしました（この端末のデータは残ります）' : '⚠️ ログアウトに失敗しました');
+    showToast(ok ? 'ログアウトしました' : '⚠️ ログアウトに失敗しました');
     renderAccount();
   }
 });
@@ -3995,7 +3989,7 @@ document.getElementById('timerReset').addEventListener('click', () => {
 });
 document.getElementById('timerApply').addEventListener('click', () => {
   const ms = timerElapsedMs();
-  if (ms < 60000) { showToast('⚠️ 1分以上計測してから入力できます'); return; }
+  if (ms < 60000) { showToast('⚠️ 1分以上計測してください'); return; }
   let hours = Math.max(0.1, Math.round(ms / 360000) / 10); // 0.1時間(6分)単位に丸める
   let clamped = false;
   if (hours > 12) { hours = 12; clamped = true; }
@@ -4003,8 +3997,8 @@ document.getElementById('timerApply').addEventListener('click', () => {
   _timer = { running: false, startedAt: 0, accumMs: 0 };
   saveTimer(); syncTimerInterval(); renderTimer(); haptic('heavy');
   showToast(clamped
-    ? '⏱ 12時間(上限)を入力しました。内容を確認して記録してください'
-    : `⏱ ${hours}時間を入力しました。内容を確認して記録してください`);
+    ? '12時間（上限）を入力しました'
+    : `${hours}時間を入力しました`);
 });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') renderTimer(); });
 // 記録フォームの時間は0.1時間単位まで入力可能にする（タイマーの値をそのまま入れられるように）
