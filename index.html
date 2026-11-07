@@ -909,7 +909,40 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 }
 .theme-seg button.active { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
 
+/* ─── 学習の推移（週別・月別） ─── */
+.trend-stats { display: flex; gap: 8px; margin-bottom: 14px; }
+.trend-stat {
+  flex: 1; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-s); padding: 8px 10px; text-align: center;
+}
+.trend-stat-val { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; line-height: 1.2; color: var(--text); }
+.trend-stat-val small { font-size: 11px; font-weight: 700; color: var(--sub); margin-left: 1px; }
+.trend-stat-key { font-size: 10px; color: var(--sub); margin-top: 2px; }
+.trend-chart { display: flex; align-items: flex-end; gap: 6px; height: 132px; }
+.trend-col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; }
+.trend-val { font-size: 9px; color: var(--sub); min-height: 12px; line-height: 1; white-space: nowrap; }
+.trend-stack { width: 100%; max-width: 30px; height: 88px; display: flex; flex-direction: column-reverse; justify-content: flex-start; }
+.trend-seg { width: 100%; min-height: 2px; }
+.trend-seg:last-child { border-radius: 4px 4px 0 0; }
+.trend-label { font-size: 10px; color: var(--sub); white-space: nowrap; }
+.trend-col.current .trend-label { color: var(--orange); font-weight: 700; }
+.trend-col.current .trend-val { color: var(--orange); font-weight: 700; }
+.trend-compare { font-size: 12px; color: var(--sub); margin-top: 10px; text-align: center; }
+.trend-compare strong { font-family: 'Nunito', sans-serif; font-weight: 900; }
+.trend-compare .up { color: #16a34a; }
+.trend-compare .down { color: var(--red); }
+
+/* ─── リマインドのバナー・スイッチ ─── */
+.alert-banner-btn {
+  margin-left: auto; flex-shrink: 0; padding: 6px 12px; min-height: 36px;
+  border-radius: 20px; border: 1.5px solid currentColor; background: transparent;
+  color: inherit; font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+.alert-banner-btn:active { opacity: 0.6; }
+.switch { width: 22px; height: 22px; accent-color: var(--orange); flex-shrink: 0; }
+
 /* ─── ダークモード ─── */
+:root[data-theme="dark"] .trend-compare .up { color: #4ade80; }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #14110e;
@@ -1084,6 +1117,7 @@ try {
         <div class="hero-card" id="heroCard"></div>
         <div class="daily-banner" id="dailyBanner"></div>
       </div>
+      <div id="reminderBanners"></div>
       <div id="alertBanners"></div>
       <div id="returnSection"></div>
       <div class="motivation-tag" id="motivationTag"></div>
@@ -1148,6 +1182,20 @@ try {
       </div>
 
       <div class="section-head">
+        <span class="section-title">学習の推移</span>
+        <div class="theme-seg" id="trendSeg">
+          <button type="button" data-trend="week">週別</button>
+          <button type="button" data-trend="month">月別</button>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="trend-stats" id="trendStats"></div>
+        <div class="trend-chart" id="trendChart" role="img" aria-label="学習時間の推移グラフ"></div>
+        <div class="chart-legend" id="trendLegend"></div>
+        <div class="trend-compare" id="trendCompare"></div>
+      </div>
+
+      <div class="section-head">
         <span class="section-title">学習ログ</span>
         <span class="hist-total" id="histTotal"></span>
       </div>
@@ -1164,6 +1212,36 @@ try {
         </div>
       </div>
       <div class="settings-card" id="accountCard"></div>
+
+      <!-- リマインド -->
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">リマインド</span>
+        </div>
+      </div>
+      <div class="settings-card" id="reminderSettings">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">学習の記録リマインド</div>
+            <div class="settings-sub">指定時刻を過ぎても今日の記録がないとき、ホームでお知らせします</div>
+          </div>
+          <input class="switch" type="checkbox" id="remDailyOn" aria-label="学習の記録リマインド">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">お知らせ時刻</div></div>
+          <input class="settings-input" type="time" id="remTime" style="width:140px;font-size:14px;">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">試験直前のお知らせ</div>
+            <div class="settings-sub">試験日の7日前から、ホームにカウントダウンを表示します</div>
+          </div>
+          <input class="switch" type="checkbox" id="remExamOn" aria-label="試験直前のお知らせ">
+        </div>
+        <div class="settings-row">
+          <div class="settings-sub">アプリを開いたときに表示されます（端末ごとの設定）</div>
+        </div>
+      </div>
 
       <!-- 表示（テーマ） -->
       <div style="padding:16px 16px 0;">
@@ -3171,6 +3249,7 @@ function render() {
     renderCertTabs();
     renderHero();
     renderDailyBanner();
+    renderReminders();
     renderAlertBanners();
     renderReturnSection();
     renderMotivation();
@@ -3180,6 +3259,7 @@ function render() {
   } else if (state.ui.currentPage === 'log') {
     renderLogCertSelect();
     renderBarChart();
+    renderTrend();
     renderHistory();
   } else if (state.ui.currentPage === 'settings') {
     renderSettings();
@@ -3652,6 +3732,197 @@ function showUndoToast(msg, onUndo, duration = 5000, onExpire = null) {
     fn?.();
   }, duration);
 }
+
+// ─── 学習の推移（週別・月別） ──────────────────────────────
+let _trendMode = 'week';
+
+function parseLocalDate(s) {
+  const [y, m, d] = String(s).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+
+// 週別＝今週を含む直近8週(月曜始まり)、月別＝今月を含む直近6か月
+function getTrendBuckets(mode) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const buckets = [];
+  if (mode === 'month') {
+    for (let i = 5; i >= 0; i--) {
+      const first = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const last  = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      buckets.push({ label: `${first.getMonth() + 1}月`, from: localDateStr(first), to: localDateStr(last), current: i === 0 });
+    }
+  } else {
+    const dow = now.getDay();
+    const monday = addDays(now, -(dow === 0 ? 6 : dow - 1));
+    for (let i = 7; i >= 0; i--) {
+      const start = addDays(monday, -7 * i);
+      buckets.push({ label: `${start.getMonth() + 1}/${start.getDate()}`, from: localDateStr(start), to: localDateStr(addDays(start, 6)), current: i === 0 });
+    }
+  }
+  return buckets;
+}
+
+function renderTrend() {
+  const chart = document.getElementById('trendChart');
+  if (!chart) return;
+  document.querySelectorAll('#trendSeg [data-trend]').forEach(b => b.classList.toggle('active', b.dataset.trend === _trendMode));
+
+  const buckets = getTrendBuckets(_trendMode);
+  const rangeFrom = buckets[0].from, rangeTo = buckets[buckets.length - 1].to;
+  const examIds = new Set(state.exams.map(e => e.id));
+  const segDefs = [...state.exams.map(e => ({ id: e.id, color: e.color, name: `${e.emoji} ${e.name}` }))];
+  if (state.logs.some(l => !examIds.has(l.examId))) segDefs.push({ id: '__other', color: '#9ca3af', name: 'その他（削除済みの試験）' });
+
+  const days = new Set();
+  let rangeTotal = 0;
+  buckets.forEach(b => {
+    b.byExam = {}; b.total = 0;
+    state.logs.forEach(l => {
+      if (l.date < b.from || l.date > b.to) return;
+      const key = examIds.has(l.examId) ? l.examId : '__other';
+      b.byExam[key] = (b.byExam[key] || 0) + l.hours;
+      b.total += l.hours;
+      days.add(l.date);
+    });
+    rangeTotal += b.total;
+  });
+
+  const unit = _trendMode === 'month' ? 'か月' : '週間';
+  const avg = days.size ? rangeTotal / days.size : 0;
+  document.getElementById('trendStats').innerHTML = `
+    <div class="trend-stat"><div class="trend-stat-val">${rangeTotal.toFixed(1)}<small>h</small></div><div class="trend-stat-key">${buckets.length}${unit}の合計</div></div>
+    <div class="trend-stat"><div class="trend-stat-val">${days.size}<small>日</small></div><div class="trend-stat-key">学習した日</div></div>
+    <div class="trend-stat"><div class="trend-stat-val">${avg.toFixed(1)}<small>h</small></div><div class="trend-stat-key">学習日あたり</div></div>`;
+
+  const maxTotal = Math.max(0.5, ...buckets.map(b => b.total));
+  const H = 88;
+  chart.innerHTML = buckets.map(b => {
+    const segs = segDefs.filter(s => b.byExam[s.id] > 0).map(s => {
+      const px = Math.max(2, Math.round((b.byExam[s.id] / maxTotal) * H));
+      return `<div class="trend-seg" style="height:${px}px;background:${escapeHtml(s.color)};" title="${escapeHtml(s.name)} ${b.byExam[s.id].toFixed(1)}h"></div>`;
+    }).join('');
+    const val = b.total > 0 ? (b.total >= 100 ? Math.round(b.total) : b.total.toFixed(1)) : '';
+    return `<div class="trend-col${b.current ? ' current' : ''}">
+      <div class="trend-val">${val}</div>
+      <div class="trend-stack">${segs}</div>
+      <div class="trend-label">${escapeHtml(b.label)}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('trendLegend').innerHTML = segDefs.map(s =>
+    `<span><span class="legend-dot" style="background:${escapeHtml(s.color)}"></span>${escapeHtml(s.name)}</span>`
+  ).join('');
+
+  // 今期と前期の比較
+  const cur = buckets[buckets.length - 1], prev = buckets[buckets.length - 2];
+  const diff = Math.round((cur.total - prev.total) * 10) / 10;
+  const nameNow = _trendMode === 'month' ? '今月' : '今週';
+  const namePrev = _trendMode === 'month' ? '先月' : '先週';
+  const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : '';
+  const sign = diff > 0 ? '+' : '';
+  document.getElementById('trendCompare').innerHTML = rangeTotal === 0
+    ? '記録がたまると、ここに推移が表示されます'
+    : `${nameNow} <strong>${cur.total.toFixed(1)}h</strong>（${namePrev}比 <strong class="${cls}">${sign}${diff.toFixed(1)}h</strong>）`;
+}
+
+document.getElementById('trendSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-trend]');
+  if (!b || b.dataset.trend === _trendMode) return;
+  _trendMode = b.dataset.trend;
+  renderTrend();
+});
+
+// ─── リマインド（アプリ内） ─────────────────────────────────
+// 静的サイトのため、プッシュ通知ではなく「アプリを開いたとき・開いている間」に
+// ホームへバナーを出す方式。設定は端末ごと（クラウド同期しない）。
+const REMINDER_KEY = 'certdash_reminder';
+function getReminderCfg() {
+  const def = { daily: true, time: '20:00', exam: true };
+  try {
+    const c = JSON.parse(localStorage.getItem(REMINDER_KEY));
+    if (c && typeof c === 'object') {
+      return {
+        daily: c.daily !== false,
+        time: /^\d{2}:\d{2}$/.test(c.time) ? c.time : def.time,
+        exam: c.exam !== false,
+      };
+    }
+  } catch (e) {}
+  return def;
+}
+function saveReminderCfg(cfg) {
+  try { localStorage.setItem(REMINDER_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+
+function renderReminders() {
+  const wrap = document.getElementById('reminderBanners');
+  if (!wrap) return;
+  const cfg = getReminderCfg();
+  const items = [];
+  const todayStr = localDateStr();
+
+  if (cfg.daily && state.exams.length) {
+    const now = new Date();
+    const [hh, mm] = cfg.time.split(':').map(Number);
+    const passed = now.getHours() * 60 + now.getMinutes() >= hh * 60 + mm;
+    const hasLogToday = state.logs.some(l => l.date === todayStr);
+    if (passed && !hasLogToday) {
+      const streak = state.streak.count;
+      items.push({
+        icon: '🔔', urgency: streak >= 3 ? 'high' : 'mid',
+        html: streak > 0
+          ? `今日の学習がまだ記録されていません。<strong>${streak}日連続</strong>が途切れてしまいます`
+          : '今日の学習がまだ記録されていません。少しだけでも進めましょう',
+        action: '記録する',
+      });
+    }
+  }
+
+  if (cfg.exam) {
+    state.exams
+      .filter(e => !isNaN(new Date(e.examDate).getTime()))
+      .map(e => ({ e, days: daysUntil(e.examDate) }))
+      .filter(x => x.days >= 0 && x.days <= 7)
+      .sort((a, b) => a.days - b.days)
+      .forEach(({ e, days }) => {
+        const remaining = Math.max(0, e.targetHours - getTotalHours(e.id));
+        const when = days === 0 ? '今日が試験日です。落ち着いて、頑張って！'
+                   : days === 1 ? 'いよいよ明日が試験です'
+                   : `試験まであと${days}日`;
+        const rest = days > 0 && remaining > 0 ? `（目標まであと${remaining.toFixed(1)}h）` : '';
+        items.push({ icon: '🎯', urgency: days <= 3 ? 'high' : 'mid', html: `<strong>${escapeHtml(e.name)}</strong>：${when}${rest}` });
+      });
+  }
+
+  wrap.innerHTML = items.slice(0, 3).map(it => `
+    <div class="alert-banner ${it.urgency}">
+      <span class="alert-banner-icon">${it.icon}</span>
+      <div>${it.html}</div>
+      ${it.action ? `<button class="alert-banner-btn tappable" type="button" data-go-log>${escapeHtml(it.action)}</button>` : ''}
+    </div>`).join('');
+}
+
+document.getElementById('reminderBanners').addEventListener('click', e => {
+  if (e.target.closest('[data-go-log]')) showPage('log');
+});
+(() => {
+  const cfg = getReminderCfg();
+  const daily = document.getElementById('remDailyOn');
+  const time  = document.getElementById('remTime');
+  const exam  = document.getElementById('remExamOn');
+  daily.checked = cfg.daily; time.value = cfg.time; exam.checked = cfg.exam;
+  const onChange = () => {
+    saveReminderCfg({ daily: daily.checked, time: time.value || '20:00', exam: exam.checked });
+    renderReminders();
+  };
+  [daily, time, exam].forEach(el => el.addEventListener('change', onChange));
+})();
+// 開いたままでも指定時刻を過ぎたら出るよう、1分ごと／画面に戻ったときに再判定する
+setInterval(() => { if (state.ui.currentPage === 'home') renderReminders(); }, 60000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.ui.currentPage === 'home') renderReminders();
+});
 
 // ─── Init ──────────────────────────────────────────────────
 // イベント委譲：ログ削除
