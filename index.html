@@ -9,6 +9,17 @@
 <meta name="apple-mobile-web-app-title" content="合格ナビ">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+// テーマ（自動／ライト／ダーク）：描画前に適用して、起動時の白→黒のちらつきを防ぐ
+(function () {
+  var pref = 'auto';
+  try { pref = localStorage.getItem('certdash_theme') || 'auto'; } catch (e) {}
+  var dark = pref === 'dark' || (pref === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', dark ? '#14110e' : '#fff7ed');
+})();
+</script>
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>合格ダッシュボード</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -851,6 +862,104 @@ nav.nav-5tabs .nav-btn .nav-icon { font-size: 19px; }
 .modal-btn.cancel  { background: var(--border); color: var(--sub); }
 .modal-btn.danger  { background: var(--red); color: #fff; }
 .modal-btn.primary { background: var(--orange); color: #fff; }
+
+/* ─── 学習タイマー ─── */
+.timer-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-m); padding: 16px;
+  margin: 0 16px 12px; box-shadow: var(--shadow-card);
+  text-align: center;
+}
+.timer-card.running { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-light); }
+.timer-label { font-size: 13px; font-weight: 600; color: var(--sub); margin-bottom: 4px; }
+.timer-display {
+  font-family: 'Nunito', sans-serif; font-weight: 900;
+  font-size: 48px; line-height: 1.1; letter-spacing: 1px;
+  font-variant-numeric: tabular-nums; color: var(--text);
+}
+.timer-card.running .timer-display { color: var(--orange); }
+.timer-actions { display: flex; gap: 8px; margin-top: 12px; }
+.timer-btn {
+  flex: 1; height: 46px; border-radius: var(--radius-s);
+  font-size: 15px; font-weight: 700;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--sub);
+  transition: all var(--transition);
+}
+.timer-btn.main {
+  flex: 2; border: none; color: #fff;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+}
+.timer-btn:active { transform: scale(0.97); }
+.timer-btn:disabled { opacity: 0.4; pointer-events: none; }
+.timer-apply {
+  width: 100%; margin-top: 8px; height: 44px;
+  border: 1.5px solid var(--orange-mid); background: var(--orange-light); color: var(--orange);
+  border-radius: var(--radius-s); font-size: 14px; font-weight: 700;
+}
+.timer-apply:disabled { opacity: 0.4; pointer-events: none; }
+.timer-hint { font-size: 11px; color: var(--sub); margin-top: 8px; }
+
+/* ─── 表示テーマ切替 ─── */
+.theme-seg { display: flex; gap: 6px; flex-shrink: 0; }
+.theme-seg button {
+  padding: 8px 10px; min-height: 40px; border-radius: 20px; white-space: nowrap;
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 12px; font-weight: 700; color: var(--sub);
+}
+.theme-seg button.active { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+
+/* ─── ダークモード ─── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14110e;
+  --surface: #1e1a16;
+  --border: #302a24;
+  --text: #f3ece4;
+  --sub: #a89a8a;
+  --orange-light: #3a2514;
+  --orange-mid: #6b3d1c;
+  --green-light: #12301d;
+  --red-light: #3a1818;
+  --blue-light: #14253f;
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.45);
+}
+:root[data-theme="dark"] header { background: rgba(20,17,14,0.92); }
+:root[data-theme="dark"] nav    { background: rgba(20,17,14,0.95); }
+:root[data-theme="dark"] .sync-badge.syncing { background: #3a2d0c; color: #fbbf24; }
+:root[data-theme="dark"] .sync-badge.synced  { color: #4ade80; }
+:root[data-theme="dark"] .daily-banner.safe   { border-color: #166534; }
+:root[data-theme="dark"] .daily-banner.warn   { background: #33280c; border-color: #78560f; }
+:root[data-theme="dark"] .daily-banner.danger { border-color: #7f1d1d; }
+:root[data-theme="dark"] .daily-banner.safe   .daily-banner-val { color: #4ade80; }
+:root[data-theme="dark"] .daily-banner.warn   .daily-banner-val { color: #fbbf24; }
+:root[data-theme="dark"] .goal-badge.done { color: #4ade80; }
+:root[data-theme="dark"] .btn-exam-delete { border-color: #7f1d1d; }
+:root[data-theme="dark"] .motivation-tag { background: linear-gradient(135deg, var(--orange-light), #33290c); color: #fcd34d; }
+:root[data-theme="dark"] .onboard-banner { border-color: #1e3a8a; }
+:root[data-theme="dark"] .onboard-banner-text { color: #93c5fd; }
+:root[data-theme="dark"] .toast { background: #f3ece4; color: #1c1410; }
+:root[data-theme="dark"] .toast-undo-btn { color: #1c1410; border-color: rgba(0,0,0,0.35); }
+:root[data-theme="dark"] .toast-undo-btn:active { background: rgba(0,0,0,0.1); }
+:root[data-theme="dark"] .return-note.alert { color: #fcd34d; background: #33280c; border-color: #78560f; }
+:root[data-theme="dark"] .alert-banner.high { border-color: #7f1d1d; color: #fca5a5; }
+:root[data-theme="dark"] .alert-banner.mid  { background: #33280c; border-color: #78560f; color: #fcd34d; }
+:root[data-theme="dark"] .alert-banner.low  { border-color: #1e3a8a; color: #93c5fd; }
+:root[data-theme="dark"] .cert-badge.special-1 { background: #3a1818; color: #fca5a5; border-color: #7f1d1d; }
+:root[data-theme="dark"] .cert-badge.special-2 { background: #33280c; color: #fcd34d; border-color: #78560f; }
+:root[data-theme="dark"] .cert-badge.special-3 { background: #3a2514; color: #fdba74; border-color: #6b3d1c; }
+:root[data-theme="dark"] .cert-badge.special-4 { background: #12301d; color: #86efac; border-color: #166534; }
+:root[data-theme="dark"] .cert-badge.self-A    { background: #2a1f4d; color: #c4b5fd; border-color: #4c3a8c; }
+:root[data-theme="dark"] .cert-badge.self-B    { background: #34266b; color: #ddd6fe; border-color: #5b47a8; }
+:root[data-theme="dark"] .cert-badge.self-C    { background: #3a1f4d; color: #e9d5ff; border-color: #6b3a8c; }
+:root[data-theme="dark"] .cert-badge.self-D    { background: #26231f; color: #c9bfb2; border-color: #3d372f; }
+:root[data-theme="dark"] .cert-badge.snow      { background: #0f2f38; color: #67e8f9; border-color: #155e75; }
+:root[data-theme="dark"] .cert-badge.ms        { background: linear-gradient(135deg, #14253f, #2a1f4d); color: #c4b5fd; border-color: #3b3f8c; }
+:root[data-theme="dark"] .cert-badge.no-cert   { background: var(--bg); color: var(--sub); border-color: var(--border); }
+/* ホームの橙色ヒーロー上では、ダークでも読みやすい半透明の暗色バッジにする */
+:root[data-theme="dark"] .hero-card .cert-badge[class] {
+  background: rgba(20,17,14,0.55); color: #fff; border-color: rgba(255,255,255,0.35);
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZmOGM0MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2ZiYmYyNCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjciIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iNyIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iMTYiIHJ4PSIxLjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjk1Ii8+PHJlY3QgeD0iMTEiIHk9IjkiIHdpZHRoPSIxMyIgaGVpZ2h0PSIxNCIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjg1Ii8+PC9zdmc+">
 <!-- Firebase SDK -->
@@ -995,6 +1104,16 @@ try {
         <div class="section-head" style="padding:0;margin-bottom:14px;">
           <span class="section-title">今日の学習を記録</span>
         </div>
+        <div class="timer-card" id="timerCard">
+          <div class="timer-label">⏱ 学習タイマー</div>
+          <div class="timer-display" id="timerDisplay" role="timer" aria-live="off">00:00:00</div>
+          <div class="timer-actions">
+            <button class="timer-btn main tappable" type="button" id="timerToggle">開始</button>
+            <button class="timer-btn tappable" type="button" id="timerReset">リセット</button>
+          </div>
+          <button class="timer-apply tappable" type="button" id="timerApply" disabled>この時間を下のフォームに入力</button>
+          <div class="timer-hint">画面を閉じても計測は続きます</div>
+        </div>
         <div class="log-card">
           <div class="input-group">
             <label class="input-label-text" for="logCert">試験</label>
@@ -1045,6 +1164,26 @@ try {
         </div>
       </div>
       <div class="settings-card" id="accountCard"></div>
+
+      <!-- 表示（テーマ） -->
+      <div style="padding:16px 16px 0;">
+        <div class="section-head" style="padding:0;margin-bottom:14px;">
+          <span class="section-title">表示</span>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">テーマ</div>
+            <div class="settings-sub">この端末のみに保存されます</div>
+          </div>
+          <div class="theme-seg" id="themeSeg">
+            <button type="button" data-theme-pref="auto">自動</button>
+            <button type="button" data-theme-pref="light">ライト</button>
+            <button type="button" data-theme-pref="dark">ダーク</button>
+          </div>
+        </div>
+      </div>
 
       <div style="padding:16px 16px 0;">
         <div class="section-head" style="padding:0;margin-bottom:14px;">
@@ -3643,6 +3782,106 @@ window.addEventListener('auth-changed', () => {
 window.addEventListener('load', () => {
   setTimeout(startInitFirestoreOnce, 2000); // 上記イベントが来なかった場合の保険
 });
+
+// ─── 学習タイマー ──────────────────────────────────────────
+// 開始時刻を保存して「現在時刻との差」で経過時間を出すので、画面を閉じる・
+// 別アプリに切り替える・ページを再読み込みしても計測は止まらない（端末ごとの状態でクラウド同期はしない）。
+const TIMER_KEY = 'certdash_timer';
+let _timer = (() => {
+  try {
+    const t = JSON.parse(localStorage.getItem(TIMER_KEY));
+    if (t && typeof t === 'object') {
+      return { running: !!t.running, startedAt: +t.startedAt || 0, accumMs: Math.max(0, +t.accumMs || 0) };
+    }
+  } catch (e) {}
+  return { running: false, startedAt: 0, accumMs: 0 };
+})();
+let _timerInterval = null;
+
+function saveTimer() {
+  try { localStorage.setItem(TIMER_KEY, JSON.stringify(_timer)); } catch (e) {}
+}
+function timerElapsedMs() {
+  return _timer.accumMs + (_timer.running ? Math.max(0, Date.now() - _timer.startedAt) : 0);
+}
+function renderTimer() {
+  const ms = timerElapsedMs();
+  const sec = Math.floor(ms / 1000);
+  const p = n => String(n).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent =
+    `${p(Math.floor(sec / 3600))}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}`;
+  document.getElementById('timerCard').classList.toggle('running', _timer.running);
+  document.getElementById('timerToggle').textContent = _timer.running ? '一時停止' : (ms > 0 ? '再開' : '開始');
+  document.getElementById('timerReset').disabled = ms === 0 && !_timer.running;
+  document.getElementById('timerApply').disabled = ms < 60000; // 1分未満は入力対象にしない
+}
+function syncTimerInterval() {
+  if (_timer.running && !_timerInterval) _timerInterval = setInterval(renderTimer, 1000);
+  if (!_timer.running && _timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+}
+function timerPause() {
+  if (_timer.running) {
+    _timer.accumMs += Math.max(0, Date.now() - _timer.startedAt);
+    _timer.running = false;
+    _timer.startedAt = 0;
+  }
+}
+document.getElementById('timerToggle').addEventListener('click', () => {
+  if (_timer.running) timerPause();
+  else { _timer.running = true; _timer.startedAt = Date.now(); }
+  saveTimer(); syncTimerInterval(); renderTimer(); haptic();
+});
+document.getElementById('timerReset').addEventListener('click', () => {
+  if (timerElapsedMs() >= 5 * 60000 && !confirm('計測中の時間をリセットしますか？')) return;
+  _timer = { running: false, startedAt: 0, accumMs: 0 };
+  saveTimer(); syncTimerInterval(); renderTimer();
+});
+document.getElementById('timerApply').addEventListener('click', () => {
+  const ms = timerElapsedMs();
+  if (ms < 60000) { showToast('⚠️ 1分以上計測してから入力できます'); return; }
+  let hours = Math.max(0.1, Math.round(ms / 360000) / 10); // 0.1時間(6分)単位に丸める
+  let clamped = false;
+  if (hours > 12) { hours = 12; clamped = true; }
+  document.getElementById('logHours').value = String(hours);
+  _timer = { running: false, startedAt: 0, accumMs: 0 };
+  saveTimer(); syncTimerInterval(); renderTimer(); haptic('heavy');
+  showToast(clamped
+    ? '⏱ 12時間(上限)を入力しました。内容を確認して記録してください'
+    : `⏱ ${hours}時間を入力しました。内容を確認して記録してください`);
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') renderTimer(); });
+// 記録フォームの時間は0.1時間単位まで入力可能にする（タイマーの値をそのまま入れられるように）
+(() => { const h = document.getElementById('logHours'); h.min = '0.1'; h.step = '0.1'; })();
+renderTimer();
+syncTimerInterval();
+
+// ─── テーマ（自動／ライト／ダーク） ────────────────────────
+const THEME_KEY = 'certdash_theme';
+const _darkMq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+function getThemePref() {
+  try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) { return 'auto'; }
+}
+function applyTheme() {
+  const pref = getThemePref();
+  const dark = pref === 'dark' || (pref === 'auto' && !!_darkMq && _darkMq.matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#14110e' : '#fff7ed');
+  document.querySelectorAll('#themeSeg [data-theme-pref]').forEach(b =>
+    b.classList.toggle('active', b.dataset.themePref === pref));
+}
+document.getElementById('themeSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme-pref]');
+  if (!b) return;
+  try { localStorage.setItem(THEME_KEY, b.dataset.themePref); } catch (err) {}
+  applyTheme();
+});
+if (_darkMq) {
+  const onChange = () => { if (getThemePref() === 'auto') applyTheme(); };
+  if (_darkMq.addEventListener) _darkMq.addEventListener('change', onChange);
+  else if (_darkMq.addListener) _darkMq.addListener(onChange);
+}
+applyTheme();
 
 // PWA：Service Worker登録（ホーム画面追加・オフライン起動用）。失敗してもアプリ本体には影響させない
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
